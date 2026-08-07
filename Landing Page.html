@@ -117,6 +117,21 @@
 
   .nav-cta:hover { background: var(--gold-bright); }
 
+  .nav-live {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: #5A8A5A;
+    letter-spacing: 0.05em;
+    display: flex; align-items: center; gap: 0.25rem;
+  }
+  .nav-live::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #5A8A5A;
+    box-shadow: 0 0 6px rgba(90,138,90,0.6);
+  }
+
   /* ── HERO ── */
   .hero {
     padding-top: 8rem;
@@ -503,12 +518,204 @@
 
   .cookie-btn.accept:hover { background: var(--gold-bright); }
 
+  /* ── BLOG ── */
+  .blog-post {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 3rem;
+    margin-top: 2rem;
+  }
+
+  .blog-post-date {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 1rem;
+  }
+
+  .blog-post h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    line-height: 1.2;
+  }
+
+  .blog-post .thread-block {
+    border-left: 2px solid var(--gold-dim);
+    padding-left: 1.5rem;
+    margin: 2rem 0;
+  }
+
+  .blog-post .thread-block p {
+    font-family: var(--sans);
+    font-size: 1rem;
+    color: var(--text);
+    line-height: 1.7;
+    margin-bottom: 1.25rem;
+    max-width: 640px;
+  }
+
+  .blog-post .thread-block p:last-child {
+    margin-bottom: 0;
+  }
+
+  .blog-post .thread-block .tweet-num {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--gold);
+    margin-bottom: 0.25rem;
+    display: block;
+    letter-spacing: 0.05em;
+  }
+
+  .blog-post .thread-link {
+    display: inline-block;
+    margin-top: 1.5rem;
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+    color: var(--gold);
+    text-decoration: none;
+    border: 1px solid var(--border-active);
+    padding: 0.625rem 1.25rem;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .blog-post .thread-link:hover {
+    border-color: var(--gold);
+    background: rgba(196,164,74,0.06);
+  }
+
+  /* ── PRICING ── */
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-top: 3rem;
+  }
+
+  .pricing-card {
+    border: 1px solid var(--border);
+    padding: 2.5rem 2rem;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pricing-card.featured {
+    border-color: var(--gold);
+    background: linear-gradient(160deg, rgba(196,164,74,0.06), rgba(196,164,74,0.02));
+    position: relative;
+  }
+
+  .pricing-card.featured::before {
+    content: 'POPULAR';
+    position: absolute;
+    top: -1px;
+    right: 2rem;
+    background: var(--gold);
+    color: #080808;
+    font-family: var(--mono);
+    font-size: 0.625rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    letter-spacing: 0.1em;
+  }
+
+  .pricing-name {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.75rem;
+  }
+
+  .pricing-price {
+    font-family: var(--mono);
+    font-size: 2.5rem;
+    font-weight: 400;
+    color: var(--text);
+    margin-bottom: 0.25rem;
+  }
+
+  .pricing-price .period {
+    font-size: 0.875rem;
+    color: var(--text-dim);
+  }
+
+  .pricing-desc {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 2rem;
+    flex-grow: 1;
+  }
+
+  .pricing-features {
+    list-style: none;
+    margin-bottom: 2rem;
+  }
+
+  .pricing-features li {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    padding: 0.375rem 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .pricing-features li:last-child { border-bottom: none; }
+
+  .pricing-features li .check {
+    color: var(--gold);
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .pricing-btn {
+    display: block;
+    text-align: center;
+    padding: 0.875rem 1.5rem;
+    font-family: var(--sans);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid var(--border-active);
+    color: var(--text);
+    transition: all 0.2s;
+  }
+
+  .pricing-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
+
+  .pricing-btn.primary {
+    background: var(--gold);
+    color: #080808;
+    border-color: var(--gold);
+  }
+
+  .pricing-btn.primary:hover { background: var(--gold-bright); }
+
+  .pricing-note {
+    text-align: center;
+    margin-top: 2rem;
+    font-size: 0.8125rem;
+    color: var(--text-dim);
+  }
+
+  .pricing-note a { color: var(--gold); text-decoration: none; }
+
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
     section { padding: 4rem 1.25rem; }
     .hero { padding-top: 6rem; }
     .steps { grid-template-columns: 1fr; }
     .compliance-grid { grid-template-columns: 1fr; }
+    .pricing-grid { grid-template-columns: 1fr; }
     .stat-bar { grid-template-columns: 1fr; }
     nav { padding: 1rem 1.25rem; }
     .nav-links { display: none; }
@@ -532,7 +739,9 @@
     <a href="#how">How</a>
     <a href="#compliance">Compliance</a>
     <a href="#demo">Demo</a>
-    <a href="#" class="nav-cta">Request Access</a>
+    <a href="dashboard/registry.html">Registry</a>
+    <span class="nav-live" title="API online">● LIVE</span>
+    <a href="#pricing" class="nav-cta">Get Pro</a>
   </div>
 </nav>
 
@@ -551,7 +760,7 @@
     Your product's actions, proven. On-chain. Forever.
   </p>
   <div class="hero-actions">
-    <a href="#" class="btn-primary">View Live Audit Trail</a>
+    <a href="/dashboard/" class="btn-primary">View Live Dashboard →</a>
     <a href="#how" class="btn-secondary">How It Works</a>
   </div>
 
@@ -654,12 +863,96 @@
 
 <div class="section-divider"></div>
 
+<!-- PRICING -->
+<section id="pricing">
+  <div class="section-label">Pricing</div>
+  <h2>One price.<br>Everything you need.</h2>
+
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <div class="pricing-name">Starter</div>
+      <div class="pricing-price">Free<span class="period">/forever</span></div>
+      <p class="pricing-desc">For solo devs shipping their first agent. Prove your agent is real before anyone asks.</p>
+      <ul class="pricing-features">
+        <li><span class="check">+</span>AgentID v2 registration</li>
+        <li><span class="check">+</span>Public audit trail</li>
+        <li><span class="check">+</span>Basic compliance reports</li>
+        <li><span class="check">+</span>Community support</li>
+      </ul>
+      <a href="#demo" class="pricing-btn">View Live Demo</a>
+    </div>
+
+    <div class="pricing-card featured">
+      <div class="pricing-name">Pro</div>
+      <div class="pricing-price">$49<span class="period">/mo</span></div>
+      <p class="pricing-desc">For teams running agents in production. Pass your next security review in hours, not weeks.</p>
+      <ul class="pricing-features">
+        <li><span class="check">+</span>Everything in Starter</li>
+        <li><span class="check">+</span>Up to 5 verified agents</li>
+        <li><span class="check">+</span>Private dashboard</li>
+        <li><span class="check">+</span>Custom compliance frameworks</li>
+        <li><span class="check">+</span>Priority support (24h SLA)</li>
+        <li><span class="check">+</span>"Verified by ProofChain" badge</li>
+        <li><span class="check">+</span>7-day money-back guarantee</li>
+      </ul>
+      <a href="https://reezy3.gumroad.com/l/zgmox" class="pricing-btn primary">Get Pro — $49/mo</a>
+    </div>
+
+    <div class="pricing-card">
+      <div class="pricing-name">Enterprise</div>
+      <div class="pricing-price">Custom</div>
+      <p class="pricing-desc">For orgs with 10+ agents or regulatory requirements beyond the standard frameworks.</p>
+      <ul class="pricing-features">
+        <li><span class="check">+</span>Everything in Pro</li>
+        <li><span class="check">+</span>Unlimited agents</li>
+        <li><span class="check">+</span>White-label deployment</li>
+        <li><span class="check">+</span>Custom SLA</li>
+        <li><span class="check">+</span>Dedicated compliance engineer</li>
+        <li><span class="check">+</span>On-premises option</li>
+      </ul>
+      <a href="mailto:enterprise@proofchain.dev" class="pricing-btn">Contact Sales</a>
+    </div>
+  </div>
+
+  <p class="pricing-note">All plans include X1 on-chain audit trails. No hidden fees. Cancel anytime. <a href="mailto:enterprise@proofchain.dev">Need help choosing?</a></p>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- BLOG -->
+<section id="blog">
+  <div class="section-label">Launch · Aug 7, 2026</div>
+  <h2>AI agents need alibis.<br>ProofChain gives them one.</h2>
+
+  <div class="blog-post">
+    <p class="blog-post-date">Launch Thread · <a href="https://x.com/EddyWoodss/status/2085768904140283939" style="color:var(--gold);text-decoration:none;">@EddyWoodss</a></p>
+    <h3>The thread that shipped ProofChain.</h3>
+    <p class="muted" style="margin-bottom:1rem;">6 tweets. No filler. Live now on X.</p>
+
+    <div class="thread-block">
+      <p><span class="tweet-num">1/6</span>AI agents need alibis. ProofChain gives them one.</p>
+      <p><span class="tweet-num">2/6</span>88% of orgs had an AI agent incident last year. 14% have audit trails. When your agent approves a $12K invoice at 3am and someone asks "who authorized this" — what do you show them? A screenshot? Good luck.</p>
+      <p><span class="tweet-num">3/6</span>Every agent gets a cryptographic identity on X1. Every action — intent → context → decision → outcome — goes on-chain. Tamper-evident. Verifiable. Forever. No central registry. No forged credentials. Your agent is provably yours.</p>
+      <p><span class="tweet-num">4/6</span>EU AI Act Article 50 is live. SOC 2 demands evidence. GDPR data access in hours, not weeks. ProofChain generates compliance reports from the same audit trail. One system. Three regulations. Zero spreadsheets.</p>
+      <p><span class="tweet-num">5/6</span>We use ProofChain to prove ProofChain. The agent that sent you this page — its entire operational history is public. Click the demo at proofchain.us. No other compliance product can say that.</p>
+      <p><span class="tweet-num">6/6</span>Open source. Live API. Built on Solana/X1. Ship agents. Stay compliant. github.com/ereezyy/proofchain</p>
+    </div>
+
+    <a href="https://x.com/EddyWoodss/status/2085768904140283939" class="thread-link">Read the thread on X →</a>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
 <!-- CTA -->
 <section class="cta" id="demo">
   <div class="section-label">Get Started</div>
   <h2>Your agents have no alibi.<br>Give them one.</h2>
-  <p>Agent registration. Audit trail. Compliance reports. All verifiable on-chain.</p>
-  <a href="#" class="btn-primary">View Live Demo</a>
+  <p>Agent registration. Audit trail. Compliance reports. All verifiable on-chain. Pro plans start at $49/mo — 7-day money-back guarantee.</p>
+  <div class="hero-actions" style="justify-content:center;">
+    <a href="#pricing" class="btn-primary">View Plans</a>
+    <a href="dashboard/" class="btn-secondary">Live Demo</a>
+  </div>
 </section>
 
 <!-- FOOTER -->
