@@ -116,6 +116,40 @@ Deployed on Linode (172.236.112.52) with PM2 + nginx reverse proxy:
 # Dashboard served from /var/www/proofchain.us/dashboard/
 ```
 
+## SDK
+
+### Python
+
+```bash
+pip install proofchain  # coming soon
+# or copy sdk/proofchain.py into your project
+```
+
+```python
+from proofchain import ping, agent, audit, compliance
+
+# Health check
+print(ping())  # {'status': 'ok', 'uptime': 690, 'version': '0.1.0'}
+
+# Verify an agent
+result = agent("FKwU1im...")
+print(result["agent"]["name"])  # "Aster"
+
+# Get audit trail
+trail = audit("FKwU1im...", limit=10)
+
+# Compliance report
+report = compliance("FKwU1im...", framework="eu-ai-act")
+```
+
+Or use the CLI:
+
+```bash
+python proofchain.py ping
+python proofchain.py agent FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B
+python proofchain.py compliance FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B
+```
+
 ## Project Structure
 
 ```
