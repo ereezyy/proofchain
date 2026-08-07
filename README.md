@@ -1,4 +1,4 @@
-# ProofChain — Your agents have no alibi.
+# <img src="assets/logo.png" alt="ProofChain" height="40" style="vertical-align: middle;"> ProofChain — Your agents have no alibi.
 
 **Verifiable AI Agent Compliance** — cryptographic identity, on-chain audit trail, and real-time compliance reporting for autonomous AI agents.
 

@@ -79,13 +79,11 @@
   }
 
   .nav-logo {
-    font-family: var(--mono);
-    font-size: 1rem;
-    font-weight: 500;
-    color: var(--gold);
-    letter-spacing: 0.05em;
-    text-decoration: none;
+    display: flex; align-items: center; gap: 0.5rem;
+    font-family: var(--mono); font-size: 1rem; font-weight: 500;
+    color: var(--gold); letter-spacing: 0.05em; text-decoration: none;
   }
+  .nav-logo img { height: 28px; width: auto; }
 
   .nav-links {
     display: flex;
@@ -529,7 +527,7 @@
 
 <!-- NAV -->
 <nav>
-  <a href="#" class="nav-logo">PROOFCHAIN</a>
+  <a href="#" class="nav-logo"><img src="assets/logo.png" alt="ProofChain">ProofChain</a>
   <div class="nav-links">
     <a href="#how">How</a>
     <a href="#compliance">Compliance</a>
@@ -541,6 +539,11 @@
 <!-- HERO -->
 <section class="hero">
   <div class="hero-label">Verifiable AI Agent Compliance</div>
+  <div style="margin-bottom:2rem;">
+    <video autoplay loop muted playsinline style="width:180px;height:auto;" poster="assets/logo.png">
+      <source src="assets/logo-animation.mp4" type="video/mp4">
+    </video>
+  </div>
   <h1>Your agents<br>have no alibi.</h1>
   <p class="hero-sub">
     When your AI agent makes a decision — and something goes wrong — what do you show the regulator?
@@ -663,7 +666,7 @@
 <footer>
   <div class="footer-grid">
     <div class="footer-brand">
-      <span class="mono">PROOFCHAIN</span>
+      <span class="mono"><img src="assets/logo.png" alt="ProofChain" style="height:20px;width:auto;vertical-align:middle;margin-right:0.25rem;">PROOFCHAIN</span>
       <p>Verifiable AI agent compliance infrastructure. On-chain identity. Tamper-evident audit trails. Automated regulatory reporting.</p>
       <div class="compliance-badges">
         <span class="compliance-badge">SOC 2 · In Progress</span>
