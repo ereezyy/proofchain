@@ -1,0 +1,35 @@
+{
+  "name": "@proofchain/sdk",
+  "version": "0.1.0",
+  "description": "ProofChain developer SDK — audit trails and compliance for AI agents",
+  "license": "MIT",
+  "author": "ProofChain",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/proofchain/sdk"
+  },
+  "main": "index.js",
+  "exports": {
+    ".": {
+      "import": "./index.mjs",
+      "require": "./index.js"
+    }
+  },
+  "files": [
+    "index.js",
+    "index.mjs",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "proofchain",
+    "audit",
+    "compliance",
+    "ai-agent",
+    "identity",
+    "verification",
+    "trail"
+  ]
+}

@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Registration — ProofChain</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500&family=Manrope:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #080808;
+    --surface: #111111;
+    --surface-raised: #1A1A1A;
+    --border: #262220;
+    --border-active: #3A342A;
+    --gold: #C4A44A;
+    --gold-dim: #8B7340;
+    --gold-bright: #D4B85C;
+    --text: #EDE8E0;
+    --text-muted: #7A7268;
+    --text-dim: #4A4440;
+    --danger: #8B3030;
+    --danger-text: #D47070;
+    --success: #4A7A4A;
+    --success-text: #8AAA8A;
+    --mono: 'DM Mono', monospace;
+    --sans: 'Manrope', system-ui, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    scroll-behavior: smooth;
+  }
+
+  body {
+    max-width: 100vw;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* ── TYPE ── */
+  h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; }
+  h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); line-height: 1.1; }
+  h2 { font-size: clamp(1.25rem, 2.5vw, 1.75rem); line-height: 1.2; margin-bottom: 1rem; }
+  h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; }
+
+  .mono { font-family: var(--mono); font-weight: 400; letter-spacing: 0; }
+  .gold { color: var(--gold); }
+  .muted { color: var(--text-muted); }
+  .dim { color: var(--text-dim); }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(8,8,8,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: var(--mono);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+    text-decoration: none;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  .nav-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--text); }
+
+  /* ── MAIN LAYOUT ── */
+  .page-wrapper {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 3rem 2rem 6rem;
+  }
+
+  .page-header {
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .page-label {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+
+  .page-header h1 {
+    margin-bottom: 0.5rem;
+  }
+
+  .page-header .subtitle {
+    font-size: 0.9375rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .card-header h3 {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    margin-bottom: 0;
+  }
+
+  .card-header .step-badge {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--gold);
+    border: 1px solid var(--gold-dim);
+    padding: 0.25rem 0.625rem;
+    white-space: nowrap;
+  }
+
+  /* ── FORM ELEMENTS ── */
+  label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+  }
+
+  input[type="text"],
+  input[type="number"] {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.75rem 1rem;
+    font-family: var(--mono);
+    font-size: 0.875rem;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+
+  input[type="text"]:focus,
+  input[type="number"]:focus {
+    border-color: var(--gold-dim);
+  }
+
+  input[type="text"]::placeholder {
+    color: var(--text-dim);
+    font-family: var(--mono);
+  }
+
+  .input-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .char-count {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--text-dim);
+    margin-top: 0.375rem;
+    text-align: right;
+  }
+
+  .char-count.warning {
+    color: var(--danger-text);
+  }
+
+  .hint {
+    font-size: 0.8125rem;
+    color: var(--text-dim);
+    margin-top: 0.375rem;
+    line-height: 1.5;
+  }
+
+  .hint a {
+    color: var(--gold-dim);
+    text-decoration: underline;
+  }
+
+  .hint a:hover { color: var(--gold); }
+
+  /* ── BUTTONS ── */
+  .btn-primary {
+    background: var(--gold);
+    color: #080808;
+    border: none;
+    padding: 0.75rem 1.75rem;
+    font-family: var(--sans);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .btn-primary:hover { background: var(--gold-bright); }
+  .btn-primary:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border-active);
+    padding: 0.75rem 1.75rem;
+    font-family: var(--sans);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .btn-secondary:hover { border-color: var(--gold-dim); color: var(--gold); }
+
+  .btn-sm {
+    padding: 0.5rem 1.25rem;
+    font-size: 0.8125rem;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+  }
+
+  /* ── STEP INDICATOR ── */
+  .step-indicator {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .step-dot {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--text-dim);
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--border);
+  }
+
+  .step-dot.active {
+    color: var(--gold);
+    border-color: var(--gold-dim);
+  }
+
+  .step-dot.complete {
+    color: var(--success-text);
+    border-color: var(--success);
+  }
+
+  .step-dot .num {
+    font-weight: 500;
+  }
+
+  /* ── WIZARD SECTIONS ── */
+  .wizard-step {
+    display: none;
+  }
+
+  .wizard-step.active {
+    display: block;
+  }
+
+  /* ── STATUS DISPLAY ── */
+  .status-box {
+    border: 1px solid var(--border);
+    padding: 1.25rem;
+    margin-top: 1rem;
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+  }
+
+  .status-box.loading {
+    color: var(--text-muted);
+    border-color: var(--border-active);
+  }
+
+  .status-box.success {
+    color: var(--success-text);
+    border-color: var(--success);
+  }
+
+  .status-box.error {
+    color: var(--danger-text);
+    border-color: var(--danger);
+  }
+
+  .status-box.warning {
+    color: var(--gold);
+    border-color: var(--gold-dim);
+  }
+
+  .status-box .label {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.6875rem;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  /* ── AGENT CARD PREVIEW ── */
+  .agent-card-preview {
+    border: 1px solid var(--gold-dim);
+    background: var(--surface);
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .agent-card-preview .ac-name {
+    font-family: var(--mono);
+    font-size: 1.125rem;
+    color: var(--gold);
+    margin-bottom: 0.375rem;
+  }
+
+  .agent-card-preview .ac-saying {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+    font-style: italic;
+  }
+
+  .agent-card-preview .ac-meta {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  .agent-card-preview .ac-meta span {
+    color: var(--text-muted);
+  }
+
+  /* ── INFO BOX ── */
+  .info-box {
+    border: 1px solid var(--border-active);
+    background: var(--surface);
+    padding: 1.25rem;
+    margin-top: 1rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .info-box strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .info-box .mono-inline {
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+    color: var(--gold-dim);
+  }
+
+  /* ── EXPLORER LINK ── */
+  .explorer-link {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--gold-dim);
+    text-decoration: none;
+    border: 1px solid var(--border);
+    padding: 0.375rem 0.75rem;
+    margin-top: 0.75rem;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .explorer-link:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 2rem 0;
+  }
+
+  /* ── BREADCRUMB ── */
+  .breadcrumb {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--text-dim);
+    margin-bottom: 1.5rem;
+  }
+
+  .breadcrumb a {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .breadcrumb a:hover { color: var(--gold); }
+
+  .breadcrumb span {
+    color: var(--text-dim);
+    margin: 0 0.5rem;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    .page-wrapper { padding: 2rem 1.25rem 4rem; }
+    nav { padding: 0.875rem 1.25rem; }
+    .card { padding: 1.5rem; }
+    .btn-row { flex-direction: column; }
+    .step-indicator { gap: 0.5rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="../Landing%20Page.html" class="nav-logo">PROOFCHAIN</a>
+  <div class="nav-links">
+    <a href="index.html">Dashboard</a>
+    <a href="register.html" style="color: var(--gold);">Register Agent</a>
+    <a href="../Landing%20Page.html">Landing</a>
+  </div>
+</nav>
+
+<!-- PAGE -->
+<div class="page-wrapper">
+
+  <div class="breadcrumb">
+    <a href="index.html">Dashboard</a><span>/</span>Agent Registration
+  </div>
+
+  <div class="page-header">
+    <span class="page-label">AgentID v2 Protocol</span>
+    <h1>Register an AI Agent</h1>
+    <p class="subtitle">
+      Mint a soulbound AgentID NFT on X1. Your agent gets a cryptographically verifiable identity — provably yours, on-chain, forever.
+    </p>
+  </div>
+
+  <!-- STEP 0: WALLET CONNECT -->
+  <div class="card" id="wallet-card">
+    <div class="card-header">
+      <h3>Wallet Address</h3>
+      <span class="step-badge">STEP 0</span>
+    </div>
+    <div class="input-group">
+      <label>X1 Wallet Address (Base58)</label>
+      <input type="text" id="wallet-input" placeholder="e.g. FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B" maxlength="44" autocomplete="off">
+      <div class="hint">
+        Paste your X1 wallet address here. You will sign transactions with your own wallet (Phantom, Backpack, etc.) — this page never handles your private keys.
+      </div>
+    </div>
+    <button class="btn-primary" onclick="checkWallet()">Verify Address</button>
+    <div id="wallet-status"></div>
+  </div>
+
+  <!-- STEP 1-4 WIZARD -->
+  <div id="wizard" style="display:none;">
+
+    <div class="step-indicator">
+      <div class="step-dot" id="step-dot-1"><span class="num">1</span> Name</div>
+      <div class="step-dot" id="step-dot-2"><span class="num">2</span> AGI Burn</div>
+      <div class="step-dot" id="step-dot-3"><span class="num">3</span> Register</div>
+      <div class="step-dot" id="step-dot-4"><span class="num">4</span> Attach NFT</div>
+    </div>
+
+    <!-- Step 1: Name & Saying -->
+    <div class="card wizard-step" id="step-1">
+      <div class="card-header">
+        <h3>Agent Name &amp; Saying</h3>
+        <span class="step-badge">STEP 1 / 4</span>
+      </div>
+      <div class="input-group">
+        <label>Agent Name <span class="dim">(max 32 chars, card-safe: 18)</span></label>
+        <input type="text" id="agent-name" placeholder="e.g. ComplianceBot" maxlength="32" oninput="updateCharCount('name-count', this.value, 32, 18)">
+        <div class="char-count" id="name-count">0 / 32 (card-safe: 18)</div>
+      </div>
+      <div class="input-group">
+        <label>Saying / Tagline <span class="dim">(max 256 chars, card-safe: 52)</span></label>
+        <input type="text" id="agent-description" placeholder="e.g. Verifying transactions so you don't have to" maxlength="256" oninput="updateCharCount('desc-count', this.value, 256, 52)">
+        <div class="char-count" id="desc-count">0 / 256 (card-safe: 52)</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="goToStep(2)">Continue</button>
+      </div>
+    </div>
+
+    <!-- Step 2: AGI Burn -->
+    <div class="card wizard-step" id="step-2">
+      <div class="card-header">
+        <h3>AGI Token Requirement</h3>
+        <span class="step-badge">STEP 2 / 4</span>
+      </div>
+      <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 1rem;">
+        Registration burns <strong style="color: var(--gold);">0.1 AGI</strong> tokens. You need at least 0.1 AGI in your wallet before proceeding.
+      </p>
+      <div class="info-box">
+        <strong>How to get AGI:</strong><br>
+        1. Swap XNT for AGI on <span class="mono-inline">XDEX</span><br>
+        2. Buy AGI directly at <a href="https://agentid-app.vercel.app" target="_blank" style="color: var(--gold-dim);">agentid-app.vercel.app</a><br>
+        <br>
+        <strong>AGI Token Mint:</strong><br>
+        <span class="mono-inline">7SXmUpcBGSAwW5LmtzQVF9jHswZ7xzmdKqWa4nDgL3ER</span>
+      </div>
+      <div class="btn-row">
+        <button class="btn-secondary btn-sm" onclick="goToStep(1)">Back</button>
+        <button class="btn-primary" onclick="goToStep(3)">I Have AGI — Continue</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Register Transaction -->
+    <div class="card wizard-step" id="step-3">
+      <div class="card-header">
+        <h3>Register Agent Transaction</h3>
+        <span class="step-badge">STEP 3 / 4</span>
+      </div>
+      <div class="info-box">
+        <strong>Instructions:</strong><br>
+        1. Open your wallet (Phantom, Backpack, etc.)<br>
+        2. Sign a <span class="mono-inline">register_agent</span> transaction<br>
+        3. This transaction burns <strong>0.1 AGI</strong> and registers your agent name<br>
+        4. Paste the transaction signature below<br>
+        <br>
+        <strong>AgentID Program:</strong><br>
+        <span class="mono-inline">7D1RrSLwfamYwxxComyHxj1uXiuzwrcJphy1436Xvud2</span><br>
+        <br>
+        <strong>Burn Amount:</strong> <span style="color: var(--gold);">0.1 AGI</span>
+      </div>
+      <div class="input-group" style="margin-top: 1rem;">
+        <label>Registration Transaction Signature</label>
+        <input type="text" id="reg-tx-sig" placeholder="Base58 transaction signature" autocomplete="off">
+        <div class="hint">Paste the signature from your wallet after signing the register_agent transaction.</div>
+      </div>
+      <div id="register-status"></div>
+      <div class="btn-row">
+        <button class="btn-secondary btn-sm" onclick="goToStep(2)">Back</button>
+        <button class="btn-primary" id="btn-register" onclick="submitRegistration()">Submit Registration</button>
+      </div>
+    </div>
+
+    <!-- Step 4: Attach NFT -->
+    <div class="card wizard-step" id="step-4">
+      <div class="card-header">
+        <h3>Attach Agent NFT</h3>
+        <span class="step-badge">STEP 4 / 4</span>
+      </div>
+      <div class="info-box">
+        <strong>Instructions:</strong><br>
+        1. In your wallet, sign an <span class="mono-inline">attach_agent_nft</span> transaction<br>
+        2. This links the NFT to your agent identity<br>
+        3. Paste the transaction signature below
+      </div>
+      <div class="input-group" style="margin-top: 1rem;">
+        <label>Attach NFT Transaction Signature</label>
+        <input type="text" id="attach-tx-sig" placeholder="Base58 transaction signature" autocomplete="off">
+        <div class="hint">Paste the signature from your wallet after signing the attach_agent_nft transaction.</div>
+      </div>
+      <div id="finalize-status"></div>
+      <div class="btn-row">
+        <button class="btn-secondary btn-sm" onclick="goToStep(3)">Back</button>
+        <button class="btn-primary" id="btn-finalize" onclick="submitFinalize()">Finalize Registration</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VERIFICATION RESULT -->
+  <div id="result-section"></div>
+
+</div>
+
+<script>
+// ── State ──
+let walletAddress = '';
+let agentName = '';
+let agentDescription = '';
+let regTxSignature = '';
+let attachTxSignature = '';
+let verifiedAgent = null;
+let currentStep = 1;
+
+// ── STEP NAVIGATION ──
+function goToStep(step) {
+  currentStep = step;
+  document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
+  document.getElementById('step-' + step).classList.add('active');
+
+  // Update step dots
+  for (let i = 1; i <= 4; i++) {
+    const dot = document.getElementById('step-dot-' + i);
+    dot.classList.remove('active', 'complete');
+    if (i === step) {
+      dot.classList.add('active');
+    } else if (i < step) {
+      dot.classList.add('complete');
+    }
+  }
+}
+
+// ── CHARACTER COUNT ──
+function updateCharCount(elId, value, max, cardSafe) {
+  const el = document.getElementById(elId);
+  const len = value.length;
+  let text = len + ' / ' + max + ' (card-safe: ' + cardSafe + ')';
+  el.textContent = text;
+  if (len > cardSafe) {
+    el.classList.add('warning');
+  } else {
+    el.classList.remove('warning');
+  }
+}
+
+// ── WALLET VERIFY ──
+async function checkWallet() {
+  const input = document.getElementById('wallet-input').value.trim();
+  const statusEl = document.getElementById('wallet-status');
+
+  if (!input || input.length < 32) {
+    statusEl.innerHTML = '<div class="status-box error"><span class="label">Error</span>Please enter a valid Base58 wallet address (at least 32 characters).</div>';
+    return;
+  }
+
+  walletAddress = input;
+  statusEl.innerHTML = '<div class="status-box loading"><span class="label">Checking...</span>Verifying wallet and AgentID status...</div>';
+
+  try {
+    // Step A: Verify if already registered
+    const verifyResp = await fetch('https://agentid-app.vercel.app/api/verify?wallet=' + encodeURIComponent(walletAddress));
+    const verifyData = await verifyResp.json();
+
+    if (verifyResp.ok && verifyData.verified === true) {
+      // Already registered — show existing card
+      verifiedAgent = verifyData;
+      showExistingAgent(verifyData);
+      statusEl.innerHTML = '';
+      document.getElementById('wizard').style.display = 'none';
+      return;
+    }
+
+    // Not registered — proceed to wizard
+    statusEl.innerHTML = '<div class="status-box success"><span class="label">Wallet Ready</span>Wallet <span class="mono" style="font-size:0.75rem;">' + escapeHtml(walletAddress.slice(0,8) + '...' + walletAddress.slice(-8)) + '</span> is not yet registered. Complete the wizard below.</div>';
+    document.getElementById('wizard').style.display = 'block';
+    goToStep(1);
+
+  } catch (err) {
+    statusEl.innerHTML = '<div class="status-box error"><span class="label">Error</span>Could not reach AgentID API. Check your connection and try again.<br><span class="mono" style="font-size:0.6875rem;">' + escapeHtml(err.message) + '</span></div>';
+  }
+}
+
+// ── SHOW EXISTING AGENT ──
+function showExistingAgent(data) {
+  const section = document.getElementById('result-section');
+  const name = data.name || 'Unknown Agent';
+  const description = data.description || data.saying || '';
+  const nftMint = data.nftMint || data.mint || '';
+  const agentId = data.agentId || data.id || '';
+
+  section.innerHTML = `
+    <div class="card" style="border-color: var(--gold-dim);">
+      <div class="card-header">
+        <h3 style="color: var(--gold);">Agent Already Registered</h3>
+        <span class="step-badge" style="color: var(--success-text); border-color: var(--success);">VERIFIED</span>
+      </div>
+      <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+        This wallet already has a registered AgentID. No further action needed.
+      </p>
+
+      <div class="agent-card-preview">
+        <div class="ac-name">${escapeHtml(name)}</div>
+        <div class="ac-saying">${escapeHtml(description)}</div>
+        <div class="ac-meta">
+          <div>Wallet: <span>${escapeHtml(walletAddress.slice(0,12))}...${escapeHtml(walletAddress.slice(-8))}</span></div>
+          ${agentId ? '<div>Agent ID: <span>' + escapeHtml(agentId) + '</span></div>' : ''}
+          ${nftMint ? '<div>NFT Mint: <span>' + escapeHtml(nftMint) + '</span></div>' : ''}
+          <div>Chain: <span>X1</span></div>
+        </div>
+        ${nftMint ? '<a class="explorer-link" href="https://explorer.x1.xyz/address/' + escapeHtml(nftMint) + '" target="_blank">View on Explorer</a>' : ''}
+        ${agentId ? '<a class="explorer-link" style="margin-left:0.5rem;" href="https://agentid-app.vercel.app/api/verify?wallet=' + encodeURIComponent(walletAddress) + '" target="_blank">AgentID API Verify</a>' : ''}
+      </div>
+    </div>
+  `;
+}
+
+// ── SUBMIT REGISTRATION ──
+async function submitRegistration() {
+  const nameInput = document.getElementById('agent-name').value.trim();
+  const descInput = document.getElementById('agent-description').value.trim();
+  const sigInput = document.getElementById('reg-tx-sig').value.trim();
+  const statusEl = document.getElementById('register-status');
+  const btn = document.getElementById('btn-register');
+
+  // Validate
+  if (!nameInput || nameInput.length < 1) {
+    statusEl.innerHTML = '<div class="status-box error"><span class="label">Error</span>Agent name is required.</div>';
+    return;
+  }
+  if (!descInput || descInput.length < 1) {
+    statusEl.innerHTML = '<div class="status-box error"><span class="label">Error</span>Saying/tagline is required.</div>';
+    return;
+  }
+  if (!sigInput || sigInput.length < 44) {
+    statusEl.innerHTML = '<div class="status-box error"><span class="label">Error</span>Please enter a valid transaction signature (at least 44 chars).</div>';
+    return;
+  }
+
+  agentName = nameInput;
+  agentDescription = descInput;
+  regTxSignature = sigInput;
+
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+  statusEl.innerHTML = '<div class="status-box loading"><span class="label">Registering...</span>Sending registration to AgentID API...</div>';
+
+  try {
+    const body = {
+      name: agentName,
+      description: agentDescription,
+      wallet: walletAddress,
+      registrationTxSignature: regTxSignature
+    };
+
+    const resp = await fetch('https://agentid-app.vercel.app/api/register-v2', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    const data = await resp.json();
+
+    if (resp.ok) {
+      statusEl.innerHTML = '<div class="status-box success"><span class="label">Registration Submitted</span>Agent registration transaction accepted. Proceed to Step 4 to attach the NFT.</div>';
+      goToStep(4);
+    } else {
+      const errMsg = data.error || data.message || 'Registration failed.';
+      statusEl.innerHTML = '<div class="status-box error"><span class="label">Registration Failed</span>' + escapeHtml(errMsg) + '</div>';
+      btn.disabled = false;
+      btn.textContent = 'Submit Registration';
+    }
+  } catch (err) {
+    statusEl.innerHTML = '<div class="status-box error"><span class="label">Error</span>Could not reach AgentID API.<br><span class="mono" style="font-size:0.6875rem;">' + escapeHtml(err.message) + '</span></div>';
+    btn.disabled = false;
+    btn.textContent = 'Submit Registration';
+  }
+}
+
+// ── SUBMIT FINALIZE ──
+async function submitFinalize() {
+  const sigInput = document.getElementById('attach-tx-sig').value.trim();
+  const statusEl = document.getElementById('finalize-status');
+  const btn = document.getElementById('btn-finalize');
+
+  if (!sigInput || sigInput.length < 44) {
+    statusEl.innerHTML = '<div class="status-box error"><span class="label">Error</span>Please enter a valid transaction signature (at least 44 chars).</div>';
+    return;
+  }
+
+  attachTxSignature = sigInput;
+
+  btn.disabled = true;
+  btn.textContent = 'Finalizing...';
+  statusEl.innerHTML = '<div class="status-box loading"><span class="label">Finalizing...</span>Attaching NFT and finalizing registration...</div>';
+
+  try {
+    const body = {
+      name: agentName,
+      description: agentDescription,
+      wallet: walletAddress,
+      registrationTxSignature: regTxSignature,
+      attachTxSignature: attachTxSignature
+    };
+
+    const resp = await fetch('https://agentid-app.vercel.app/api/register-v2-finalize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    const data = await resp.json();
+
+    if (resp.ok) {
+      statusEl.innerHTML = '<div class="status-box success"><span class="label">Registration Complete</span>AgentID registration finalized successfully.</div>';
+
+      // Re-verify to get full details
+      try {
+        const verifyResp = await fetch('https://agentid-app.vercel.app/api/verify?wallet=' + encodeURIComponent(walletAddress));
+        const verifyData = await verifyResp.json();
+        if (verifyResp.ok && verifyData.verified) {
+          showFinalSuccess(verifyData, data);
+        } else {
+          showFinalSuccess(data, data);
+        }
+      } catch (e) {
+        showFinalSuccess(data, data);
+      }
+    } else {
+      const errMsg = data.error || data.message || 'Finalization failed.';
+      statusEl.innerHTML = '<div class="status-box error"><span class="label">Finalization Failed</span>' + escapeHtml(errMsg) + '</div>';
+      btn.disabled = false;
+      btn.textContent = 'Finalize Registration';
+    }
+  } catch (err) {
+    statusEl.innerHTML = '<div class="status-box error"><span class="label">Error</span>Could not reach AgentID API.<br><span class="mono" style="font-size:0.6875rem;">' + escapeHtml(err.message) + '</span></div>';
+    btn.disabled = false;
+    btn.textContent = 'Finalize Registration';
+  }
+}
+
+// ── SHOW FINAL SUCCESS ──
+function showFinalSuccess(data, finalizeData) {
+  const section = document.getElementById('result-section');
+  const name = data.name || agentName;
+  const description = data.description || agentDescription;
+  const nftMint = data.nftMint || data.mint || finalizeData.nftMint || '';
+  const agentId = data.agentId || data.id || finalizeData.agentId || '';
+
+  // Mark all steps complete
+  for (let i = 1; i <= 4; i++) {
+    const dot = document.getElementById('step-dot-' + i);
+    dot.classList.remove('active');
+    dot.classList.add('complete');
+  }
+
+  section.innerHTML = `
+    <div class="card" style="border-color: var(--success);">
+      <div class="card-header">
+        <h3 style="color: var(--success-text);">Agent Registered Successfully</h3>
+        <span class="step-badge" style="color: var(--success-text); border-color: var(--success);">COMPLETE</span>
+      </div>
+
+      <div class="agent-card-preview" style="border-color: var(--success);">
+        <div class="ac-name">${escapeHtml(name)}</div>
+        <div class="ac-saying">${escapeHtml(description)}</div>
+        <div class="ac-meta">
+          <div>Wallet: <span>${escapeHtml(walletAddress.slice(0,12))}...${escapeHtml(walletAddress.slice(-8))}</span></div>
+          ${agentId ? '<div>Agent ID: <span>' + escapeHtml(agentId) + '</span></div>' : ''}
+          ${nftMint ? '<div>NFT Mint: <span>' + escapeHtml(nftMint) + '</span></div>' : ''}
+          <div>Chain: <span>X1</span></div>
+          <div>Program: <span>7D1RrSLwfamYwxxComyHxj1uXiuzwrcJphy1436Xvud2</span></div>
+          <div>AGI Burned: <span>0.1 AGI</span></div>
+        </div>
+        ${nftMint ? '<a class="explorer-link" href="https://explorer.x1.xyz/address/' + escapeHtml(nftMint) + '" target="_blank">View NFT on Explorer</a>' : ''}
+        <a class="explorer-link" style="margin-left:0.5rem;" href="https://agentid-app.vercel.app/api/verify?wallet=' + encodeURIComponent(walletAddress) + '" target="_blank">AgentID API Verify</a>
+      </div>
+
+      <p style="color: var(--text-muted); margin-top: 1.5rem; font-size: 0.875rem; line-height: 1.6;">
+        Your agent is now registered on X1 with a verifiable AgentID. Return to the <a href="index.html" style="color: var(--gold-dim);">dashboard</a> to manage your agent and view its audit trail.
+      </p>
+    </div>
+  `;
+
+  // Hide wizard
+  document.getElementById('wizard').style.display = 'none';
+}
+
+// ── UTILITY ──
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+</script>
+
+</body>
+</html>
