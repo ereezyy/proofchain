@@ -304,6 +304,12 @@
     font-weight: 500;
   }
 
+  .step-time {
+    font-size: 0.625rem;
+    color: var(--text-dim);
+    margin-left: 0.25rem;
+  }
+
   /* ── WIZARD SECTIONS ── */
   .wizard-step {
     display: none;
@@ -451,6 +457,24 @@
     margin: 0 0.5rem;
   }
 
+  /* ── ALREADY HAVE AGENT LINK ── */
+  .already-link {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--gold-dim);
+    text-decoration: none;
+    border: 1px solid var(--border-active);
+    padding: 0.5rem 1rem;
+    margin-top: 0.75rem;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .already-link:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
   /* ── RESPONSIVE ── */
   @media (max-width: 640px) {
     .page-wrapper { padding: 2rem 1.25rem 4rem; }
@@ -472,6 +496,7 @@
   <a href="../Landing%20Page.html" class="nav-logo"><img src="../assets/logo.png" alt="ProofChain" style="height:24px;width:auto;vertical-align:middle;margin-right:0.25rem;">ProofChain</a>
   <div class="nav-links">
     <a href="index.html">Dashboard</a>
+    <a href="registry.html">Registry</a>
     <a href="register.html" style="color: var(--gold);">Register Agent</a>
     <a href="../Landing%20Page.html">Landing</a>
   </div>
@@ -490,6 +515,7 @@
     <p class="subtitle">
       Mint a soulbound AgentID NFT on X1. Your agent gets a cryptographically verifiable identity — provably yours, on-chain, forever.
     </p>
+    <a href="#wallet-card" class="already-link">Already have an agent? Verify it now →</a>
   </div>
 
   <!-- STEP 0: WALLET CONNECT -->
@@ -513,10 +539,10 @@
   <div id="wizard" style="display:none;">
 
     <div class="step-indicator">
-      <div class="step-dot" id="step-dot-1"><span class="num">1</span> Name</div>
-      <div class="step-dot" id="step-dot-2"><span class="num">2</span> AGI Burn</div>
-      <div class="step-dot" id="step-dot-3"><span class="num">3</span> Register</div>
-      <div class="step-dot" id="step-dot-4"><span class="num">4</span> Attach NFT</div>
+      <div class="step-dot" id="step-dot-1"><span class="num">1</span> Name <span class="step-time">~30 sec</span></div>
+      <div class="step-dot" id="step-dot-2"><span class="num">2</span> AGI Burn <span class="step-time">~30 sec</span></div>
+      <div class="step-dot" id="step-dot-3"><span class="num">3</span> Register <span class="step-time">~1 min</span></div>
+      <div class="step-dot" id="step-dot-4"><span class="num">4</span> Attach NFT <span class="step-time">~30 sec</span></div>
     </div>
 
     <!-- Step 1: Name & Saying -->

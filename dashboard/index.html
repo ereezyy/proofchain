@@ -134,6 +134,22 @@
   .loading { text-align: center; padding: 4rem; color: var(--text-muted); font-family: var(--mono); font-size: 0.8125rem; }
   .error { text-align: center; padding: 2rem; color: var(--red-text); background: rgba(139,48,48,0.05); border: 1px solid var(--red); }
 
+  /* ── HEADER BUTTON ── */
+  .header-btn {
+    background: var(--gold);
+    color: #080808;
+    border: none;
+    padding: 0.4rem 1rem;
+    font-family: var(--sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+    margin-right: 0.75rem;
+  }
+  .header-btn:hover { background: var(--gold-bright); }
+
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
     .agent-card { grid-template-columns: 1fr; text-align: center; }
@@ -149,6 +165,8 @@
 <div class="header">
   <a href="../Landing%20Page.html" class="header-logo"><img src="../assets/logo.png" alt="ProofChain" style="height:24px;width:auto;vertical-align:middle;margin-right:0.25rem;">ProofChain</a>
   <div class="header-status">
+    <a href="registry.html" style="color:var(--text-muted);text-decoration:none;font-size:0.75rem;font-family:var(--mono);margin-right:0.75rem;">Registry</a>
+    <a href="register.html" class="header-btn">Register New Agent</a>
     <span id="api-status">API: checking...</span>
     <div class="status-dot" id="status-dot"></div>
   </div>
@@ -183,7 +201,8 @@
 const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:3456'
   : '';  // production: relative URLs via nginx proxy
-const WALLET = 'FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B';
+const params = new URLSearchParams(window.location.search);
+const WALLET = params.get('wallet') || 'FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B';
 
 async function loadAll() {
   try {
