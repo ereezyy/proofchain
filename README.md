@@ -2,6 +2,8 @@
 
 **Verifiable AI Agent Compliance** — cryptographic identity, on-chain audit trail, and real-time compliance reporting for autonomous AI agents.
 
+**Live:** [proofchain.us](https://proofchain.us) | **API:** `https://proofchain.us/api`
+
 ## What is ProofChain?
 
 ProofChain is an open-source compliance infrastructure layer for AI agents. It combines three technologies to create a tamper-evident, cryptographically verifiable record of everything an agent does:
@@ -17,7 +19,7 @@ Together, these form an **immutable audit trail** that can generate compliance r
 ```
 ┌─────────────────────────────────────────────────────┐
 │                  ProofChain API                      │
-│               (Express — port 3456)                  │
+│            (Express + PM2 — port 3458)               │
 ├───────────────┬──────────────┬──────────────────────┤
 │   AgentID v2  │     HXMP     │       X1 RPC         │
 │   Identity    │  Audit Trail │   Chain Queries      │
@@ -34,13 +36,14 @@ Together, these form an **immutable audit trail** that can generate compliance r
 
 - Node.js 18+
 - npm
+- PM2 (production)
 
 ### Install and Run
 
 ```bash
 cd server
 npm install
-npm start        # Runs on http://localhost:3456
+npm start        # Runs on http://localhost:3458
 # or
 npm run dev      # With file watcher
 ```
@@ -58,7 +61,8 @@ proofchain stop     # Stop the API
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/api/health` | Server and X1 RPC health check |
+| `GET` | `/api/ping` | Lightweight health check (no chain dependency) |
+| `GET` | `/api/health` | Full health check with X1 RPC status |
 | `GET` | `/api/agent/:wallet` | Verify agent identity via AgentID v2 |
 | `GET` | `/api/audit/:wallet` | Get HXMP audit trail (supports `?type=` and `?limit=`) |
 | `GET` | `/api/audit/:wallet/timeline` | Chronological timeline of agent actions |
@@ -68,17 +72,20 @@ proofchain stop     # Stop the API
 ### Examples
 
 ```bash
-# Health check
-curl http://localhost:3456/api/health
+# Health check (lightweight)
+curl https://proofchain.us/api/ping
+
+# Full health with X1 status
+curl https://proofchain.us/api/health
 
 # Verify an agent's identity
-curl http://localhost:3456/api/agent/FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B
+curl https://proofchain.us/api/agent/FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B
 
 # Get audit trail
-curl http://localhost:3456/api/audit/FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B?limit=10
+curl https://proofchain.us/api/audit/FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B?limit=10
 
 # EU AI Act compliance report
-curl http://localhost:3456/api/compliance/FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B/report?framework=eu-ai-act
+curl https://proofchain.us/api/compliance/FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B/report?framework=eu-ai-act
 ```
 
 ## Verification
@@ -99,25 +106,38 @@ ProofChain generates structured compliance reports for:
 
 Reports are available as JSON for programmatic consumption or as styled HTML for auditor review.
 
+## Production Deployment
+
+Deployed on Linode (172.236.112.52) with PM2 + nginx reverse proxy:
+
+```bash
+# PM2 ecosystem config at /opt/proofchain-api/ecosystem.config.cjs
+# Nginx proxies /api/ → [::1]:3458 with HTTPS (Let's Encrypt)
+# Dashboard served from /var/www/proofchain.us/dashboard/
+```
+
 ## Project Structure
 
 ```
 proofchain/
 ├── Landing Page.html        # Public landing page
 ├── proofchain.bat           # Windows batch management script
+├── README.md
 ├── dashboard/
-│   ├── index.html           # Dashboard UI
+│   ├── index.html           # Dashboard UI (auto-detects localhost vs prod)
 │   └── register.html        # Agent registration page
 ├── server/
-│   ├── server.js            # Express API server
-│   ├── package.json         # Dependencies
+│   ├── server.js            # Express API server (6 endpoints)
+│   ├── package.json         # ESM, 4 deps
+│   ├── ecosystem.config.cjs # PM2 production config (PORT=3458)
 │   └── lib/
 │       ├── agentid.js       # AgentID v2 identity verification
 │       ├── hxmp.js          # HXMP audit trail parser
 │       └── x1.js            # X1 RPC read-only wrapper
 ├── sdk/
 │   └── examples/            # Coming soon
-└── README.md
+└── assets/
+    └── logo.png
 ```
 
 ## Design

@@ -14,7 +14,7 @@ if "%1"=="start" (
 ) else if "%1"=="logs" (
     pm2 logs proofchain-api
 ) else if "%1"=="status" (
-    curl -s http://localhost:3456/api/health
+    curl -s https://proofchain.us/api/health
     echo.
     pm2 status
 ) else (

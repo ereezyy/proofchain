@@ -29,6 +29,11 @@ app.get('/api/health', async (_req, res) => {
   }
 });
 
+// ── Lightweight ping (no X1 dependency) ─────────────────
+app.get('/api/ping', (_req, res) => {
+  res.json({ status: 'ok', uptime: process.uptime(), version: '0.1.0' });
+});
+
 // ── Agent Identity ─────────────────────────────────────
 app.get('/api/agent/:wallet', async (req, res) => {
   try {

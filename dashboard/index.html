@@ -180,7 +180,9 @@
 </div>
 
 <script>
-const API = 'http://localhost:3456';
+const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:3456'
+  : '';  // production: relative URLs via nginx proxy
 const WALLET = 'FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B';
 
 async function loadAll() {
