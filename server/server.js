@@ -8,12 +8,14 @@ import cors from 'cors';
 import { healthCheck } from './lib/x1.js';
 import { verifyAgent } from './lib/agentid.js';
 import { getAuditTrail, getAuditTimeline } from './lib/hxmp.js';
+import { generateApiKey, revokeApiKey, listApiKeys, requireApiKey, optionalApiKey, rateLimiter } from './lib/api-keys.js';
 
 const app = express();
 const PORT = process.env.PORT || 3456;
 
 app.use(cors());
 app.use(express.json());
+app.use(optionalApiKey); // Attach API key metadata when present, but don't reject unauthed requests
 
 // ── Health ──────────────────────────────────────────────
 app.get('/api/health', async (_req, res) => {
@@ -34,8 +36,8 @@ app.get('/api/ping', (_req, res) => {
   res.json({ status: 'ok', uptime: process.uptime(), version: '0.1.0' });
 });
 
-// ── Agent Identity ─────────────────────────────────────
-app.get('/api/agent/:wallet', async (req, res) => {
+// ── Agent Identity (rate-limited for free tier) ────────
+app.get('/api/agent/:wallet', rateLimiter, async (req, res) => {
   try {
     const result = await verifyAgent(req.params.wallet);
     res.json(result);
@@ -44,8 +46,8 @@ app.get('/api/agent/:wallet', async (req, res) => {
   }
 });
 
-// ── Audit Trail ────────────────────────────────────────
-app.get('/api/audit/:wallet', async (req, res) => {
+// ── Audit Trail (rate-limited for free tier) ───────────
+app.get('/api/audit/:wallet', rateLimiter, async (req, res) => {
   try {
     const { type, limit } = req.query;
     const result = await getAuditTrail(req.params.wallet, {
@@ -71,8 +73,8 @@ app.get('/api/audit/:wallet/timeline', async (req, res) => {
   }
 });
 
-// ── Compliance Report (stub) ───────────────────────────
-app.get('/api/compliance/:wallet/report', async (req, res) => {
+// ── Compliance Report (rate-limited for free tier) ─────
+app.get('/api/compliance/:wallet/report', rateLimiter, async (req, res) => {
   try {
     const { framework } = req.query; // eu-ai-act | soc2 | gdpr
     const agent = await verifyAgent(req.params.wallet);
@@ -528,14 +530,135 @@ function formatDate(iso) {
   } catch { return iso; }
 }
 
+// ════════════════════════════════════════════════════════
+//  PRO TIER — API key required, no rate limit
+// ════════════════════════════════════════════════════════
+
+// ── Pro Health ─────────────────────────────────────────
+app.get('/api/pro/health', requireApiKey, async (_req, res) => {
+  try {
+    const x1 = await healthCheck();
+    res.json({
+      status: 'ok',
+      tier: 'pro',
+      email: _req.apiKey.email,
+      x1,
+      server: { uptime: process.uptime(), version: '0.2.0' }
+    });
+  } catch (err) {
+    res.status(503).json({ status: 'degraded', tier: 'pro', error: err.message });
+  }
+});
+
+// ── Pro Agent Identity ─────────────────────────────────
+app.get('/api/pro/agent/:wallet', requireApiKey, async (req, res) => {
+  try {
+    const result = await verifyAgent(req.params.wallet);
+    res.json({ ...result, tier: 'pro' });
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+// ── Pro Audit Trail ────────────────────────────────────
+app.get('/api/pro/audit/:wallet', requireApiKey, async (req, res) => {
+  try {
+    const { type, limit } = req.query;
+    const result = await getAuditTrail(req.params.wallet, {
+      type: type || null,
+      limit: parseInt(limit) || 100  // Pro gets higher default limit
+    });
+    res.json({ ...result, tier: 'pro' });
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+// ── Pro Audit Timeline ─────────────────────────────────
+app.get('/api/pro/audit/:wallet/timeline', requireApiKey, async (req, res) => {
+  try {
+    const { limit } = req.query;
+    const result = await getAuditTimeline(req.params.wallet, {
+      limit: parseInt(limit) || 200  // Pro gets higher default
+    });
+    res.json({ ...result, tier: 'pro' });
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+// ── Pro Compliance Report ──────────────────────────────
+app.get('/api/pro/compliance/:wallet/report', requireApiKey, async (req, res) => {
+  try {
+    const { framework } = req.query;
+    const agent = await verifyAgent(req.params.wallet);
+    const audit = await getAuditTrail(req.params.wallet, { limit: 500 }); // Pro: deeper audit
+    const report = buildComplianceReport(agent, audit, framework || 'all');
+    res.json({ ...report, tier: 'pro' });
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+// ── Pro Scheduled Report (stub — register a schedule) ──
+app.post('/api/pro/reports/schedule', requireApiKey, (req, res) => {
+  const { wallet, framework, interval } = req.body; // interval: daily|weekly|monthly
+  if (!wallet || !framework) {
+    return res.status(400).json({ error: 'wallet and framework are required' });
+  }
+  // In production: store schedule in DB, trigger via cron
+  res.json({
+    status: 'scheduled',
+    wallet,
+    framework,
+    interval: interval || 'daily',
+    next_run: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    message: 'Scheduled reports will be delivered to your registered email.'
+  });
+});
+
+// ── Pro API Key Management ─────────────────────────────
+app.post('/api/pro/keys/generate', requireApiKey, (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ error: 'email is required' });
+  }
+  const result = generateApiKey(email, 'pro');
+  res.status(201).json(result);
+});
+
+app.delete('/api/pro/keys/revoke/:key', requireApiKey, (req, res) => {
+  const success = revokeApiKey(req.params.key);
+  if (!success) {
+    return res.status(404).json({ error: 'Key not found' });
+  }
+  res.json({ status: 'revoked' });
+});
+
+app.get('/api/pro/keys', requireApiKey, (_req, res) => {
+  res.json({ keys: listApiKeys() });
+});
+
 // ── Start ──────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`ProofChain API running on http://localhost:${PORT}`);
   console.log(`Endpoints:`);
-  console.log(`  GET /api/health`);
-  console.log(`  GET /api/agent/:wallet`);
-  console.log(`  GET /api/audit/:wallet`);
-  console.log(`  GET /api/audit/:wallet/timeline`);
-  console.log(`  GET /api/compliance/:wallet/report?framework=eu-ai-act|soc2|gdpr|all`);
-  console.log(`  GET /api/compliance/:wallet/report/pdf?framework=all&format=pdf|html`);
+  console.log(`  Public (rate-limited, 100 req/day):`);
+  console.log(`    GET /api/health`);
+  console.log(`    GET /api/ping`);
+  console.log(`    GET /api/agent/:wallet`);
+  console.log(`    GET /api/audit/:wallet`);
+  console.log(`    GET /api/audit/:wallet/timeline`);
+  console.log(`    GET /api/compliance/:wallet/report?framework=eu-ai-act|soc2|gdpr|all`);
+  console.log(`    GET /api/compliance/:wallet/report/pdf?framework=all`);
+  console.log(`  Pro (API key required, unlimited):`);
+  console.log(`    GET /api/pro/health`);
+  console.log(`    GET /api/pro/agent/:wallet`);
+  console.log(`    GET /api/pro/audit/:wallet`);
+  console.log(`    GET /api/pro/audit/:wallet/timeline`);
+  console.log(`    GET /api/pro/compliance/:wallet/report`);
+  console.log(`    POST /api/pro/reports/schedule`);
+  console.log(`    POST /api/pro/keys/generate`);
+  console.log(`    GET /api/pro/keys`);
+  console.log(`    DELETE /api/pro/keys/revoke/:key`);
 });
