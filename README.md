@@ -2,7 +2,7 @@
 
 **Verifiable AI Agent Compliance** — cryptographic identity, on-chain audit trail, and real-time compliance reporting for autonomous AI agents.
 
-**Live:** [proofchain.us](https://proofchain.us) | **API:** `https://proofchain.us/api`
+**Live:** [proofchain.us](https://proofchain.us) | **API:** `https://proofchain.us/api` | ![status](https://img.shields.io/badge/API-live-5A8A5A)
 
 ## What is ProofChain?
 
