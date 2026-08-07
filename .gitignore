@@ -3,3 +3,5 @@ node_modules/
 *.key
 id.json
 hxmp-encryption.key*
+_push.py
+_patch.py
