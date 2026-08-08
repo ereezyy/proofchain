@@ -9,6 +9,8 @@ import { healthCheck } from './lib/x1.js';
 import { verifyAgent } from './lib/agentid.js';
 import { getAuditTrail, getAuditTimeline } from './lib/hxmp.js';
 import { generateApiKey, revokeApiKey, listApiKeys, requireApiKey, optionalApiKey, rateLimiter } from './lib/api-keys.js';
+import { listAgents, registerAgent } from './lib/registry.js';
+import { removeAgent } from './lib/registry.js';
 
 const app = express();
 const PORT = process.env.PORT || 3456;
@@ -531,6 +533,48 @@ function formatDate(iso) {
 }
 
 // ════════════════════════════════════════════════════════
+//  AGENT REGISTRY — public listing + registration
+// ════════════════════════════════════════════════════════
+
+// ── List all registered agents ─────────────────────────
+app.get('/api/agents', async (_req, res) => {
+  try {
+    const data = await listAgents();
+    res.json(data);
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+// ── Register an agent wallet ───────────────────────────
+app.post('/api/agents/register', async (req, res) => {
+  try {
+    const { wallet } = req.body;
+    if (!wallet) {
+      return res.status(400).json({ error: 'wallet is required' });
+    }
+    const result = await registerAgent(wallet);
+    if (result.added) {
+      res.status(201).json(result);
+    } else {
+      res.status(400).json(result);
+    }
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+// ── Remove an agent from the registry ──────────────────
+app.delete('/api/agents/:wallet', (req, res) => {
+  const result = removeAgent(req.params.wallet);
+  if (result.removed) {
+    res.json({ status: 'removed', wallet: req.params.wallet });
+  } else {
+    res.status(404).json({ error: 'Wallet not found in registry.' });
+  }
+});
+
+// ════════════════════════════════════════════════════════
 //  PRO TIER — API key required, no rate limit
 // ════════════════════════════════════════════════════════
 
@@ -651,6 +695,9 @@ app.listen(PORT, () => {
   console.log(`    GET /api/audit/:wallet/timeline`);
   console.log(`    GET /api/compliance/:wallet/report?framework=eu-ai-act|soc2|gdpr|all`);
   console.log(`    GET /api/compliance/:wallet/report/pdf?framework=all`);
+  console.log(`    GET /api/agents`);
+  console.log(`    POST /api/agents/register`);
+  console.log(`    DELETE /api/agents/:wallet`);
   console.log(`  Pro (API key required, unlimited):`);
   console.log(`    GET /api/pro/health`);
   console.log(`    GET /api/pro/agent/:wallet`);

@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Registry — ProofChain</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500&family=Manrope:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #080808;
+    --surface: #111111;
+    --surface-raised: #1A1A1A;
+    --border: #262220;
+    --border-active: #3A342A;
+    --gold: #C4A44A;
+    --gold-dim: #8B7340;
+    --gold-bright: #D4B85C;
+    --text: #EDE8E0;
+    --text-muted: #7A7268;
+    --text-dim: #4A4440;
+    --green: #5A8A5A;
+    --green-bg: rgba(90,138,90,0.08);
+    --red: #8B3030;
+    --red-text: #D47070;
+    --mono: 'DM Mono', monospace;
+    --sans: 'Manrope', system-ui, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    scroll-behavior: smooth;
+  }
+
+  body {
+    max-width: 100vw;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* ── TYPE ── */
+  h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; }
+  h1 { font-size: clamp(1.75rem, 4vw, 2.25rem); line-height: 1.1; }
+  h2 { font-size: clamp(1.25rem, 2.5vw, 1.5rem); line-height: 1.2; }
+
+  .mono { font-family: var(--mono); font-weight: 400; letter-spacing: 0; }
+  .gold { color: var(--gold); }
+  .muted { color: var(--text-muted); }
+  .dim { color: var(--text-dim); }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(8,8,8,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: var(--mono);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+    text-decoration: none;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  .nav-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--text); }
+  .nav-links a.active { color: var(--gold); }
+
+  /* ── MAIN ── */
+  .page-wrapper {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 3rem 2rem 6rem;
+  }
+
+  .page-header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .page-label {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+
+  .page-header p {
+    font-size: 0.9375rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+    line-height: 1.6;
+  }
+
+  /* ── SEARCH ── */
+  .search-section {
+    margin-bottom: 2rem;
+  }
+
+  .search-bar {
+    display: flex;
+    gap: 0.75rem;
+    max-width: 600px;
+  }
+
+  .search-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+    padding: 0.75rem 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-input::placeholder { color: var(--text-dim); }
+  .search-input:focus { border-color: var(--gold-dim); }
+
+  .search-btn {
+    background: var(--gold);
+    color: #080808;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-family: var(--sans);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .search-btn:hover { background: var(--gold-bright); }
+  .search-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .search-hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+    font-family: var(--mono);
+  }
+
+  .search-error {
+    color: var(--red-text);
+    font-size: 0.8125rem;
+    margin-top: 0.5rem;
+    display: none;
+  }
+
+  /* ── FEATURED AGENT CARD ── */
+  .featured-section {
+    margin-bottom: 2.5rem;
+  }
+
+  .section-title {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 1rem;
+  }
+
+  .agent-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1.5rem;
+    align-items: center;
+    transition: border-color 0.2s;
+    position: relative;
+  }
+
+  .agent-card:hover { border-color: var(--border-active); }
+  .agent-card.featured { border-color: var(--gold-dim); }
+
+  .agent-card.featured::before {
+    content: 'FEATURED';
+    position: absolute;
+    top: -1px;
+    left: 2rem;
+    transform: translateY(-50%);
+    background: var(--gold);
+    color: #080808;
+    font-family: var(--mono);
+    font-size: 0.5625rem;
+    font-weight: 600;
+    padding: 0.15rem 0.75rem;
+    letter-spacing: 0.1em;
+  }
+
+  .agent-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 2px;
+    background: var(--surface-raised);
+    border: 1px solid var(--gold-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 1.25rem;
+    color: var(--gold);
+    flex-shrink: 0;
+  }
+
+  .agent-info h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.15rem;
+  }
+
+  .agent-info .wallet {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--text-dim);
+  }
+
+  .agent-info .description {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    margin-top: 0.35rem;
+    line-height: 1.5;
+  }
+
+  .agent-meta {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.35rem;
+  }
+
+  .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.5625rem;
+    padding: 0.2rem 0.65rem;
+    border: 1px solid var(--gold-dim);
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .badge.verified {
+    border-color: var(--green);
+    color: var(--green);
+    background: var(--green-bg);
+  }
+
+  .badge.unverified {
+    border-color: var(--red);
+    color: var(--red-text);
+  }
+
+  .nft-mint {
+    font-family: var(--mono);
+    font-size: 0.625rem;
+    color: var(--text-dim);
+  }
+
+  .nft-mint a {
+    color: var(--gold-dim);
+    text-decoration: none;
+  }
+
+  .nft-mint a:hover { color: var(--gold); }
+
+  /* ── STATS ROW ── */
+  .stats-row {
+    display: flex;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-top: 0;
+  }
+
+  .stat {
+    background: var(--surface);
+    padding: 0.75rem 1.25rem;
+    text-align: center;
+    flex: 1;
+  }
+
+  .stat-num {
+    font-family: var(--mono);
+    font-size: 1.25rem;
+    color: var(--gold);
+    display: block;
+  }
+
+  .stat-label {
+    font-size: 0.625rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 0.15rem;
+  }
+
+  /* ── LINK TO DASHBOARD ── */
+  .dashboard-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--gold-dim);
+    text-decoration: none;
+    margin-top: 0.5rem;
+    transition: color 0.2s;
+  }
+
+  .dashboard-link:hover { color: var(--gold); }
+  .dashboard-link svg { width: 14px; height: 14px; }
+
+  /* ── ALL AGENTS GRID ── */
+  .agents-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .agents-grid .agent-card {
+    padding: 1.25rem 1.5rem;
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .agents-grid .agent-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+
+  .agents-grid .agent-info h2 {
+    font-size: 1rem;
+  }
+
+  .agents-grid .agent-info .description {
+    font-size: 0.75rem;
+  }
+
+  /* ── LOADING / EMPTY ── */
+  .loading {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-muted);
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+  }
+
+  .empty {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-muted);
+    border: 1px dashed var(--border);
+  }
+
+  .empty-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.3;
+  }
+
+  .error-msg {
+    text-align: center;
+    padding: 2rem;
+    color: var(--red-text);
+    background: rgba(139,48,48,0.05);
+    border: 1px solid var(--red);
+  }
+
+  /* ── RECENT AGENTS ── */
+  .recent-section {
+    margin-top: 3rem;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .page-wrapper { padding: 2rem 1.25rem 4rem; }
+    nav { padding: 1rem 1.25rem; }
+    .nav-links { gap: 1rem; }
+
+    .agent-card {
+      grid-template-columns: 1fr;
+      text-align: center;
+    }
+    .agent-avatar { margin: 0 auto; }
+    .agent-meta {
+      align-items: center;
+      text-align: center;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .stats-row { flex-wrap: wrap; }
+    .stat { flex: 1 1 50%; }
+
+    .search-bar { flex-direction: column; }
+    .search-btn { width: 100%; }
+  }
+
+  @media (max-width: 480px) {
+    .nav-links a { font-size: 0.75rem; }
+    .agent-info h2 { font-size: 1.1rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="../Landing%20Page.html" class="nav-logo"><img src="../assets/logo.png" alt="ProofChain" style="height:24px;width:auto;vertical-align:middle;margin-right:0.25rem;">ProofChain</a>
+  <div class="nav-links">
+    <a href="index.html">Dashboard</a>
+    <a href="register.html">Register</a>
+    <a href="registry.html" class="active">Registry</a>
+    <a href="../Landing%20Page.html">Landing</a>
+  </div>
+</nav>
+
+<!-- PAGE -->
+<div class="page-wrapper">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <span class="page-label">Agent Registry</span>
+    <h1>Verified Agents</h1>
+    <p>Browse all verified AI agents registered on ProofChain. Each agent has a soulbound AgentID NFT, an immutable audit trail, and compliance verification on the X1 blockchain.</p>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="search-section">
+    <div class="search-bar">
+      <input
+        type="text"
+        class="search-input"
+        id="search-input"
+        placeholder="Paste a wallet address (e.g. FKwU1im...MBG9B)"
+        autocomplete="off"
+        spellcheck="false"
+      >
+      <button class="search-btn" id="search-btn" onclick="lookupWallet()">Search Registry</button>
+    </div>
+    <div class="search-hint" id="search-hint">Try Aster's wallet: FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B</div>
+    <div class="search-error" id="search-error"></div>
+  </div>
+
+  <!-- GLOBAL STATS -->
+  <div class="stats-row" id="global-stats">
+    <div class="stat">
+      <span class="stat-num" id="stat-total">1</span>
+      <span class="stat-label">Registered Agents</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num" id="stat-verified">1</span>
+      <span class="stat-label">Verified</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num">X1</span>
+      <span class="stat-label">Chain</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num">v2</span>
+      <span class="stat-label">Protocol</span>
+    </div>
+  </div>
+
+  <!-- FEATURED / LOOKED-UP AGENT -->
+  <div class="featured-section" id="featured-section">
+    <div class="section-title">Agent Details</div>
+    <div id="featured-agent"><div class="loading">Search for a wallet or scroll down to browse verified agents…</div></div>
+  </div>
+
+  <!-- ALL AGENTS -->
+  <div class="recent-section">
+    <div class="section-title">All Verified Agents</div>
+    <div id="agents-grid" class="agents-grid">
+      <div class="loading">Loading agent registry…</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:3456'
+  : '';
+
+// Default featured wallet — Aster
+const FEATURED_WALLET = 'FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B';
+
+// Track all wallets we know about
+const knownWallets = new Set([FEATURED_WALLET]);
+const agentCache = {};
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function shorten(addr, front, back) {
+  front = front || 8;
+  back = back || 4;
+  if (!addr || addr.length <= front + back + 3) return addr || '—';
+  return addr.slice(0, front) + '...' + addr.slice(-back);
+}
+
+function formatDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('en-US', {
+    year: 'numeric', month: 'short', day: 'numeric'
+  });
+}
+
+async function fetchAgent(wallet) {
+  if (agentCache[wallet]) return agentCache[wallet];
+  try {
+    const resp = await fetch(`${API}/api/agent/${wallet}`);
+    if (!resp.ok) throw new Error(`API returned ${resp.status}`);
+    const data = await resp.json();
+    agentCache[wallet] = data;
+    return data;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function fetchAuditCount(wallet) {
+  try {
+    const resp = await fetch(`${API}/api/audit/${wallet}?limit=1`);
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    return data.total;
+  } catch {
+    return null;
+  }
+}
+
+function renderAgentCard(agent, featured) {
+  if (!agent) return '<div class="error-msg">Agent not found or not yet registered.</div>';
+
+  const name = agent.agent?.name || 'Unknown Agent';
+  const desc = agent.agent?.description || '';
+  const verified = agent.verified;
+  const nftMint = agent.nft?.mint || agent.agent?.nftMint || '—';
+  const registered = formatDate(agent.agent?.registeredAt);
+  const explorerUrl = agent.nft?.explorerUrl || `https://explorer.x1.xyz/address/${nftMint}`;
+  const wallet = agent.wallet;
+  const auditCount = agent._auditCount !== undefined ? agent._auditCount : '…';
+
+  const featuredClass = featured ? ' featured' : '';
+
+  return `
+    <div class="agent-card${featuredClass}">
+      <div class="agent-avatar">${escapeHtml(name[0])}</div>
+      <div class="agent-info">
+        <h2>${escapeHtml(name)}</h2>
+        <div class="wallet">${wallet}</div>
+        <div class="description">${escapeHtml(desc)}</div>
+      </div>
+      <div class="agent-meta">
+        <span class="badge${verified ? ' verified' : ' unverified'}">${verified ? '✓ Verified' : '✗ Unverified'}</span>
+        <span class="badge">AgentID v2</span>
+        <span class="nft-mint">NFT: <a href="${explorerUrl}" target="_blank">${shorten(nftMint, 6, 4)}</a></span>
+        <span style="font-family:var(--mono);font-size:0.625rem;color:var(--text-dim);">Audits: ${auditCount} · Registered ${registered}</span>
+        <a href="index.html?wallet=${encodeURIComponent(wallet)}" class="dashboard-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          View Full Dashboard →
+        </a>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat">
+        <span class="stat-num">${auditCount}</span>
+        <span class="stat-label">Audit Records</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">${verified ? 'Verified' : 'Pending'}</span>
+        <span class="stat-label">AgentID Status</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">${registered}</span>
+        <span class="stat-label">Registered</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">${agent.agent?.protocolVersion || 'v2'}</span>
+        <span class="stat-label">Protocol</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderAgentCardMini(agent) {
+  if (!agent) return '';
+  const name = agent.agent?.name || 'Unknown';
+  const verified = agent.verified;
+  const nftMint = agent.nft?.mint || agent.agent?.nftMint || '—';
+  const registered = formatDate(agent.agent?.registeredAt);
+  const explorerUrl = agent.nft?.explorerUrl || `https://explorer.x1.xyz/address/${nftMint}`;
+  const wallet = agent.wallet;
+  const auditCount = agent._auditCount !== undefined ? agent._auditCount : '…';
+
+  return `
+    <div class="agent-card">
+      <div class="agent-avatar">${escapeHtml(name[0])}</div>
+      <div class="agent-info">
+        <h2>${escapeHtml(name)}</h2>
+        <div class="wallet">${shorten(wallet, 10, 6)}</div>
+      </div>
+      <div class="agent-meta">
+        <span class="badge${verified ? ' verified' : ' unverified'}">${verified ? '✓ Verified' : '✗ Unverified'}</span>
+        <span class="nft-mint">NFT: <a href="${explorerUrl}" target="_blank">${shorten(nftMint, 6, 4)}</a></span>
+        <span style="font-family:var(--mono);font-size:0.5625rem;color:var(--text-dim);">${auditCount} audits · ${registered}</span>
+        <a href="index.html?wallet=${encodeURIComponent(wallet)}" class="dashboard-link" style="margin-top:0.25rem;">Dashboard →</a>
+      </div>
+    </div>
+  `;
+}
+
+async function loadFeatured(wallet) {
+  const container = document.getElementById('featured-agent');
+  container.innerHTML = '<div class="loading">Looking up agent…</div>';
+
+  const agent = await fetchAgent(wallet);
+  if (agent && agent.wallet) {
+    knownWallets.add(agent.wallet);
+    const count = await fetchAuditCount(agent.wallet);
+    agent._auditCount = count !== null ? count : '?';
+  }
+  container.innerHTML = renderAgentCard(agent, true);
+}
+
+async function loadAllAgents() {
+  const grid = document.getElementById('agents-grid');
+  grid.innerHTML = '<div class="loading">Loading agent registry…</div>';
+
+  try {
+    const resp = await fetch(`${API}/api/agents`);
+    if (!resp.ok) throw new Error(`API returned ${resp.status}`);
+    const data = await resp.json();
+    const agents = data.agents || [];
+
+    if (!agents.length) {
+      grid.innerHTML = `
+        <div class="empty">
+          <div class="empty-icon">🔍</div>
+          <p style="font-family:var(--mono);font-size:0.8125rem;">No agents in the registry yet.</p>
+          <p style="font-size:0.75rem;margin-top:0.5rem;">Use the search box above to look up a wallet, or <a href="register.html" style="color:var(--gold-dim);">register a new agent</a>.</p>
+        </div>`;
+      return;
+    }
+
+    // Update stats
+    document.getElementById('stat-total').textContent = data.registered_wallets || agents.length;
+    document.getElementById('stat-verified').textContent = agents.filter(a => a.verified).length;
+
+    // Fetch audit counts in parallel
+    const withCounts = await Promise.all(
+      agents.map(async (agent) => {
+        try {
+          const countResp = await fetch(`${API}/api/audit/${agent.wallet}?limit=1`);
+          if (countResp.ok) {
+            const countData = await countResp.json();
+            agent._auditCount = countData.total;
+          }
+        } catch {}
+        return agent;
+      })
+    );
+
+    grid.innerHTML = withCounts.map(a => renderAgentCardMini(a)).join('');
+  } catch (err) {
+    grid.innerHTML = `<div class="error-msg">Could not load registry: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+async function lookupWallet() {
+  const input = document.getElementById('search-input');
+  const err = document.getElementById('search-error');
+  const btn = document.getElementById('search-btn');
+  const wallet = input.value.trim();
+
+  err.style.display = 'none';
+
+  if (!wallet) {
+    err.textContent = 'Please enter a wallet address.';
+    err.style.display = 'block';
+    return;
+  }
+
+  // Basic Solana address validation (32-44 chars, base58)
+  if (wallet.length < 32 || wallet.length > 44) {
+    err.textContent = 'Invalid wallet address — Solana addresses are 32-44 characters.';
+    err.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Searching…';
+
+  const agent = await fetchAgent(wallet);
+  if (agent && agent.wallet) {
+    knownWallets.add(agent.wallet);
+    const count = await fetchAuditCount(agent.wallet);
+    agent._auditCount = count !== null ? count : '?';
+    document.getElementById('featured-agent').innerHTML =
+      renderAgentCard(agent, true) +
+      `<div style="margin-top:1rem;text-align:center;">
+        <button class="search-btn" onclick="addToRegistry('${escapeHtml(wallet)}')" id="btn-register" style="margin-right:0.5rem;">+ Add to Registry</button>
+        <span id="register-status" style="font-family:var(--mono);font-size:0.75rem;color:var(--text-muted);margin-left:0.5rem;"></span>
+      </div>`;
+    // Refresh the grid
+    await loadAllAgents();
+    // Scroll to featured
+    document.getElementById('featured-section').scrollIntoView({ behavior: 'smooth' });
+  } else {
+    document.getElementById('featured-agent').innerHTML = `
+      <div class="error-msg">
+        <strong>Agent not found</strong><br>
+        <span style="font-size:0.8125rem;">Wallet <code style="font-family:var(--mono);color:var(--gold-dim);">${escapeHtml(shorten(wallet, 12, 8))}</code> has not registered an AgentID yet.</span>
+        <br><a href="register.html" style="color:var(--gold-dim);font-size:0.75rem;">Register this wallet →</a>
+      </div>`;
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Search Registry';
+}
+
+async function addToRegistry(wallet) {
+  const btn = document.getElementById('btn-register');
+  const status = document.getElementById('register-status');
+  btn.disabled = true;
+  btn.textContent = 'Adding…';
+  status.textContent = '';
+
+  try {
+    const resp = await fetch(`${API}/api/agents/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ wallet })
+    });
+    const data = await resp.json();
+    if (resp.ok) {
+      status.textContent = '✓ Added to registry';
+      status.style.color = 'var(--green)';
+      btn.style.display = 'none';
+      await loadAllAgents();
+    } else {
+      status.textContent = data.error || 'Failed to register';
+      status.style.color = 'var(--red-text)';
+      btn.disabled = false;
+      btn.textContent = '+ Add to Registry';
+    }
+  } catch (err) {
+    status.textContent = 'Network error';
+    status.style.color = 'var(--red-text)';
+    btn.disabled = false;
+    btn.textContent = '+ Add to Registry';
+  }
+}
+
+// Enter key in search
+document.getElementById('search-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') lookupWallet();
+});
+
+// Init
+(async function init() {
+  // Preload featured
+  await loadFeatured(FEATURED_WALLET);
+  // Load grid
+  await loadAllAgents();
+})();
+</script>
+
+</body>
+</html>

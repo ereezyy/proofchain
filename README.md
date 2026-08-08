@@ -64,6 +64,9 @@ proofchain stop     # Stop the API
 | `GET` | `/api/ping` | Lightweight health check (no chain dependency) |
 | `GET` | `/api/health` | Full health check with X1 RPC status |
 | `GET` | `/api/agent/:wallet` | Verify agent identity via AgentID v2 |
+| `GET` | `/api/agents` | List all registered agents in the ProofChain registry |
+| `POST` | `/api/agents/register` | Register an agent wallet in the ProofChain registry |
+| `DELETE` | `/api/agents/:wallet` | Remove an agent from the registry |
 | `GET` | `/api/audit/:wallet` | Get HXMP audit trail (supports `?type=` and `?limit=`) |
 | `GET` | `/api/audit/:wallet/timeline` | Chronological timeline of agent actions |
 | `GET` | `/api/compliance/:wallet/report` | Compliance report (JSON) — `?framework=eu-ai-act\|soc2\|gdpr` |
@@ -86,6 +89,14 @@ curl https://proofchain.us/api/audit/FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9
 
 # EU AI Act compliance report
 curl https://proofchain.us/api/compliance/FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B/report?framework=eu-ai-act
+
+# List all registered agents
+curl https://proofchain.us/api/agents
+
+# Register a new agent in the registry
+curl -X POST https://proofchain.us/api/agents/register \
+  -H "Content-Type: application/json" \
+  -d '{"wallet":"YOUR_WALLET_ADDRESS"}'
 ```
 
 ## Verification
