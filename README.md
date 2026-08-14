@@ -4,6 +4,8 @@
 
 **Live:** [proofchain.us](https://proofchain.us) | **API:** `https://proofchain.us/api` | ![status](https://img.shields.io/badge/API-live-5A8A5A)
 
+**Key pages:** [Agent Accountability](https://proofchain.us/accountability.html) · [AgentID — Who's Who](https://proofchain.us/agentid.html) · [AI Audit Trail](https://proofchain.us/audit-trail.html) · [Live Registry](https://proofchain.us/dashboard/registry.html)
+
 ## What is ProofChain?
 
 ProofChain is an open-source compliance infrastructure layer for AI agents. It combines three technologies to create a tamper-evident, cryptographically verifiable record of everything an agent does:

@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent Accountability — Identity, Audit Trails & Compliance | ProofChain</title>
+<meta name="description" content="What AI agent accountability actually means: verified agent identity, tamper-evident audit trails, and automated EU AI Act / SOC 2 / GDPR compliance evidence. ProofChain delivers all three on-chain.">
+<link rel="canonical" href="https://proofchain.us/accountability.html">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500&family=Manrope:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #080808;
+    --surface: #111111;
+    --surface-raised: #1A1A1A;
+    --border: #262220;
+    --border-active: #3A342A;
+    --gold: #C4A44A;
+    --gold-dim: #8B7340;
+    --gold-bright: #D4B85C;
+    --text: #EDE8E0;
+    --text-muted: #7A7268;
+    --text-dim: #4A4440;
+    --danger: #8B3030;
+    --danger-text: #D47070;
+    --mono: 'DM Mono', monospace;
+    --sans: 'Manrope', system-ui, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    scroll-behavior: smooth;
+  }
+
+  body {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  /* ── TYPE ── */
+  h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; }
+  h1 { font-size: clamp(2.5rem, 5vw, 4.5rem); line-height: 1.05; }
+  h2 { font-size: clamp(1.75rem, 3vw, 2.75rem); line-height: 1.15; margin-bottom: 1.5rem; }
+  h3 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
+
+  .mono { font-family: var(--mono); font-weight: 400; letter-spacing: 0; }
+  .gold { color: var(--gold); }
+  .muted { color: var(--text-muted); }
+  .dim { color: var(--text-dim); }
+
+  /* ── LAYOUT ── */
+  section {
+    padding: 6rem 2rem;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 1.25rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(8,8,8,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-family: var(--mono); font-size: 1rem; font-weight: 500;
+    color: var(--gold); letter-spacing: 0.05em; text-decoration: none;
+  }
+  .nav-logo img { height: 28px; width: auto; }
+
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+  }
+
+  .nav-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--text); }
+
+  .nav-cta {
+    background: var(--gold);
+    color: #080808;
+    border: none;
+    padding: 0.5rem 1.25rem;
+    font-family: var(--sans);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .nav-cta:hover { background: var(--gold-bright); }
+
+  .nav-live {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: #5A8A5A;
+    letter-spacing: 0.05em;
+    display: flex; align-items: center; gap: 0.25rem;
+  }
+  .nav-live::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #5A8A5A;
+    box-shadow: 0 0 6px rgba(90,138,90,0.6);
+  }
+
+  /* ── HERO ── */
+  .hero {
+    padding-top: 8rem;
+    padding-bottom: 4rem;
+  }
+
+  .hero-label {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero h1 {
+    margin-bottom: 1.5rem;
+    max-width: 720px;
+  }
+
+  .hero-sub {
+    font-size: 1.125rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    max-width: 560px;
+    margin-bottom: 2.5rem;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    background: var(--gold);
+    color: #080808;
+    border: none;
+    padding: 0.875rem 2rem;
+    font-family: var(--sans);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+  }
+
+  .btn-primary:hover { background: var(--gold-bright); }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border-active);
+    padding: 0.875rem 2rem;
+    font-family: var(--sans);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+    text-decoration: none;
+  }
+
+  .btn-secondary:hover { border-color: var(--gold-dim); color: var(--gold); }
+
+  /* ── STAT BAR ── */
+  .stat-bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-top: 4rem;
+  }
+
+  .stat-item {
+    background: var(--surface);
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .stat-number {
+    font-family: var(--mono);
+    font-size: 2rem;
+    font-weight: 400;
+    color: var(--gold);
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  .stat-label {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── SECTIONS ── */
+  .section-divider {
+    height: 1px;
+    background: var(--border);
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: 1rem;
+  }
+
+  /* ── HOW IT WORKS ── */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-top: 3rem;
+  }
+
+  .step-card {
+    border: 1px solid var(--border);
+    padding: 2rem;
+    background: var(--surface);
+  }
+
+  .step-number {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--gold);
+    display: block;
+    margin-bottom: 1rem;
+  }
+
+  .step-card h3 {
+    font-size: 1.125rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+  }
+
+  .step-card p {
+    font-size: 0.9375rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    margin-top: 2rem;
+    overflow-x: auto;
+  }
+
+  .code-block pre {
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+    line-height: 1.7;
+    color: var(--text-muted);
+  }
+
+  .code-block .key { color: var(--gold); }
+  .code-block .val { color: #8AAA8A; }
+  .code-block .hash { color: var(--text-dim); }
+  .code-block .comment { color: #4A4040; }
+
+  /* ── COMPLIANCE GRID ── */
+  .compliance-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    margin-top: 3rem;
+  }
+
+  .compliance-card {
+    border: 1px solid var(--border);
+    padding: 2rem;
+    background: var(--surface);
+  }
+
+  .compliance-card .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    padding: 0.25rem 0.75rem;
+    border: 1px solid var(--border-active);
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .compliance-card .badge.ready { border-color: var(--gold-dim); color: var(--gold); }
+
+  .compliance-card h3 { margin-bottom: 0.5rem; }
+  .compliance-card p { font-size: 0.9375rem; color: var(--text-muted); line-height: 1.6; }
+
+  /* ── DOGFOOD ── */
+  .dogfood {
+    border: 1px solid var(--gold-dim);
+    background: linear-gradient(135deg, rgba(196,164,74,0.03), rgba(196,164,74,0.08));
+    padding: 3rem;
+    margin-top: 4rem;
+  }
+
+  .dogfood-label {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: 1rem;
+  }
+
+  .dogfood h2 { font-size: 1.5rem; margin-bottom: 0; }
+  .dogfood p { color: var(--text-muted); line-height: 1.6; margin-top: 1rem; max-width: 600px; }
+
+  /* ── CTA ── */
+  .cta {
+    text-align: center;
+    padding: 8rem 2rem;
+  }
+
+  .cta h2 {
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    margin-bottom: 1rem;
+  }
+
+  .cta p {
+    color: var(--text-muted);
+    margin-bottom: 2.5rem;
+    font-size: 1.125rem;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 0;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 2rem;
+    padding: 4rem 2rem 3rem;
+  }
+
+  .footer-brand .mono {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--gold);
+    display: block;
+    margin-bottom: 0.75rem;
+  }
+
+  .footer-brand p {
+    font-size: 0.8125rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+    max-width: 280px;
+  }
+
+  .footer-col h4 {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 1rem;
+    font-weight: 500;
+  }
+
+  .footer-col a {
+    display: block;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.8125rem;
+    padding: 0.25rem 0;
+    transition: color 0.2s;
+  }
+
+  .footer-col a:hover { color: var(--text); }
+
+  .footer-disclaimers {
+    border-top: 1px solid var(--border);
+    padding: 2.5rem 2rem;
+  }
+
+  .footer-disclaimers p {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+    margin-bottom: 1rem;
+  }
+
+  .footer-disclaimers p:last-child { margin-bottom: 0; }
+
+  .footer-disclaimers strong { color: var(--text-muted); font-weight: 600; }
+
+  .footer-bottom {
+    border-top: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-bottom .mono { font-size: 0.75rem; color: var(--text-dim); }
+  .footer-bottom .copyright { font-size: 0.75rem; color: var(--text-dim); }
+
+  .compliance-badges {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+  }
+
+  .compliance-badge {
+    font-family: var(--mono);
+    font-size: 0.625rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--border);
+  }
+
+  /* ── COOKIE BANNER ── */
+  .cookie-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border-active);
+    padding: 1rem 2rem;
+    z-index: 200;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .cookie-banner p {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    max-width: 600px;
+  }
+
+  .cookie-banner p a { color: var(--gold); }
+
+  .cookie-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .cookie-btn {
+    padding: 0.5rem 1.25rem;
+    font-family: var(--sans);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid var(--border-active);
+    background: transparent;
+    color: var(--text);
+    transition: all 0.2s;
+  }
+
+  .cookie-btn:hover { border-color: var(--gold-dim); }
+  .cookie-btn.accept {
+    background: var(--gold);
+    color: #080808;
+    border-color: var(--gold);
+  }
+
+  .cookie-btn.accept:hover { background: var(--gold-bright); }
+
+  /* ── BLOG ── */
+  .blog-post {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 3rem;
+    margin-top: 2rem;
+  }
+
+  .blog-post-date {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 1rem;
+  }
+
+  .blog-post h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    line-height: 1.2;
+  }
+
+  .blog-post .thread-block {
+    border-left: 2px solid var(--gold-dim);
+    padding-left: 1.5rem;
+    margin: 2rem 0;
+  }
+
+  .blog-post .thread-block p {
+    font-family: var(--sans);
+    font-size: 1rem;
+    color: var(--text);
+    line-height: 1.7;
+    margin-bottom: 1.25rem;
+    max-width: 640px;
+  }
+
+  .blog-post .thread-block p:last-child {
+    margin-bottom: 0;
+  }
+
+  .blog-post .thread-block .tweet-num {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--gold);
+    margin-bottom: 0.25rem;
+    display: block;
+    letter-spacing: 0.05em;
+  }
+
+  .blog-post .thread-link {
+    display: inline-block;
+    margin-top: 1.5rem;
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+    color: var(--gold);
+    text-decoration: none;
+    border: 1px solid var(--border-active);
+    padding: 0.625rem 1.25rem;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .blog-post .thread-link:hover {
+    border-color: var(--gold);
+    background: rgba(196,164,74,0.06);
+  }
+
+  /* ── PRICING ── */
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-top: 3rem;
+  }
+
+  .pricing-card {
+    border: 1px solid var(--border);
+    padding: 2.5rem 2rem;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pricing-card.featured {
+    border-color: var(--gold);
+    background: linear-gradient(160deg, rgba(196,164,74,0.06), rgba(196,164,74,0.02));
+    position: relative;
+  }
+
+  .pricing-card.featured::before {
+    content: 'POPULAR';
+    position: absolute;
+    top: -1px;
+    right: 2rem;
+    background: var(--gold);
+    color: #080808;
+    font-family: var(--mono);
+    font-size: 0.625rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    letter-spacing: 0.1em;
+  }
+
+  .pricing-name {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.75rem;
+  }
+
+  .pricing-price {
+    font-family: var(--mono);
+    font-size: 2.5rem;
+    font-weight: 400;
+    color: var(--text);
+    margin-bottom: 0.25rem;
+  }
+
+  .pricing-price .period {
+    font-size: 0.875rem;
+    color: var(--text-dim);
+  }
+
+  .pricing-desc {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 2rem;
+    flex-grow: 1;
+  }
+
+  .pricing-features {
+    list-style: none;
+    margin-bottom: 2rem;
+  }
+
+  .pricing-features li {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    padding: 0.375rem 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .pricing-features li:last-child { border-bottom: none; }
+
+  .pricing-features li .check {
+    color: var(--gold);
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .pricing-btn {
+    display: block;
+    text-align: center;
+    padding: 0.875rem 1.5rem;
+    font-family: var(--sans);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid var(--border-active);
+    color: var(--text);
+    transition: all 0.2s;
+  }
+
+  .pricing-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
+
+  .pricing-btn.primary {
+    background: var(--gold);
+    color: #080808;
+    border-color: var(--gold);
+  }
+
+  .pricing-btn.primary:hover { background: var(--gold-bright); }
+
+  .pricing-note {
+    text-align: center;
+    margin-top: 2rem;
+    font-size: 0.8125rem;
+    color: var(--text-dim);
+  }
+
+  .pricing-note a { color: var(--gold); text-decoration: none; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    section { padding: 4rem 1.25rem; }
+    .hero { padding-top: 6rem; }
+    .steps { grid-template-columns: 1fr; }
+    .compliance-grid { grid-template-columns: 1fr; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .stat-bar { grid-template-columns: 1fr; }
+    nav { padding: 1rem 1.25rem; }
+    .nav-links { display: none; }
+    .footer-grid { grid-template-columns: 1fr; gap: 2rem; padding: 3rem 1.25rem 2rem; }
+    .footer-disclaimers { padding: 2rem 1.25rem; }
+    .footer-bottom { flex-direction: column; text-align: center; padding: 1.25rem; }
+    .cookie-banner { flex-direction: column; text-align: center; padding: 1rem 1.25rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+<!-- Canonical machine-readable specification — schema.org JSON-LD (AI crawler friendly) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://proofchain.us/#org",
+      "name": "ProofChain",
+      "url": "https://proofchain.us",
+      "logo": "https://proofchain.us/assets/logo.png",
+      "slogan": "Cheaper than the mistake.",
+      "description": "Verifiable AI agent compliance infrastructure: soulbound on-chain agent identity (AgentID v2), tamper-evident audit trails (HXMP), and automated compliance reports for the EU AI Act, SOC 2, GDPR, and ISO 42001.",
+      "email": "compliance@proofchain.us",
+      "sameAs": [
+        "https://x.com/eddywoodss"
+      ],
+      "founder": {
+        "@type": "Person",
+        "name": "Eddy Woods"
+      }
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://proofchain.us/#app",
+      "name": "ProofChain",
+      "url": "https://proofchain.us",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "description": "Verifiable AI agent compliance platform. Registers AI agents with soulbound NFT identities on the X1 blockchain, records tamper-evident HXMP audit trails of agent actions, and generates automated compliance reports.",
+      "featureList": [
+        "AgentID v2 soulbound NFT registration on X1",
+        "HXMP encrypted tamper-evident audit trail",
+        "EU AI Act Annex IV compliance mapping",
+        "SOC 2 Type II evidence automation",
+        "GDPR-compliant privacy-preserving memos",
+        "ISO 42001 accountability mapping",
+        "Public REST API",
+        "Live public audit trail dashboard",
+        "On-chain shutdown receipts (AI Kill Switch Act readiness)",
+        "Content provenance layer (AI Transparency Act readiness)"
+      ],
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Free",
+          "price": "0",
+          "priceCurrency": "USD",
+          "description": "AgentID v2 registration, public API (100 requests/day), public audit trail, basic compliance reports."
+        },
+        {
+          "@type": "Offer",
+          "name": "Pro",
+          "price": "29",
+          "priceCurrency": "USD",
+          "description": "Unlimited API requests, scheduled compliance reports, priority support, white-label exports, custom frameworks. Also available at $249/year. 7-day money-back guarantee."
+        },
+        {
+          "@type": "Offer",
+          "name": "Enterprise",
+          "price": "0",
+          "priceCurrency": "USD",
+          "description": "Custom pricing for 10+ agents, dedicated compliance engineers, or on-prem deployment."
+        }
+      ],
+      "provider": { "@id": "https://proofchain.us/#org" }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://proofchain.us/#website",
+      "url": "https://proofchain.us",
+      "name": "ProofChain",
+      "publisher": { "@id": "https://proofchain.us/#org" },
+      "inLanguage": "en",
+      "description": "Verifiable AI agent compliance — your agents have no alibi. On-chain identity, tamper-evident audit trails, automated compliance.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://proofchain.us/search?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "Organization", "@id": "https://proofchain.us/#org", "name": "ProofChain", "url": "https://proofchain.us", "description": "Verifiable AI agent compliance infrastructure: on-chain identity, tamper-evident audit trails, automated regulatory reporting.", "sameAs": ["https://github.com/ereezyy/proofchain", "https://x.com/EddyWoodss"]}, {"@type": "SoftwareApplication", "@id": "https://proofchain.us/accountability.html#app", "name": "ProofChain \u2014 AI Agent Accountability", "applicationCategory": "SecurityApplication", "operatingSystem": "Web, API", "url": "https://proofchain.us/accountability.html", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD", "description": "Free tier: agent registration, public audit trail, basic compliance reports. Pro from $49/mo."}, "featureList": ["Soulbound agent identity on X1", "Tamper-evident HXMP audit trails", "EU AI Act / SOC 2 / GDPR / ISO 42001 compliance reports", "Verifiable API"], "publisher": {"@id": "https://proofchain.us/#org"}}, {"@type": "FAQPage", "@id": "https://proofchain.us/accountability.html#faq", "mainEntity": [{"@type": "Question", "name": "What is agent accountability?", "acceptedAnswer": {"@type": "Answer", "text": "The ability to attribute every autonomous agent action to a verified identity and a recorded decision \u2014 and to prove that record is complete and unaltered."}}, {"@type": "Question", "name": "Agent accountability vs agent security?", "acceptedAnswer": {"@type": "Answer", "text": "Security keeps bad agents out. Accountability proves what the good agents did. You need both."}}, {"@type": "Question", "name": "Do we really need this now?", "acceptedAnswer": {"@type": "Answer", "text": "EU AI Act Article 50 is live. SOC 2 buyers demand evidence. 88% of organizations report AI agent incidents \u2014 only 14% have full audit trails."}}, {"@type": "Question", "name": "How does ProofChain differ from a logging tool?", "acceptedAnswer": {"@type": "Answer", "text": "Logs can be edited, deleted, or disputed. ProofChain anchors identity on-chain and writes tamper-evident, encrypted audit records to X1."}}]}]}</script>
+</head>
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo"><img src="assets/logo.png" alt="ProofChain">ProofChain</a>
+  <div class="nav-links">
+    <a href="#what">How</a>
+    <a href="#regulations">Compliance</a>
+    <a href="#regulations">US Acts</a>
+    <a href="#demo">Demo</a>
+    <a href="dashboard/registry.html">Registry</a>
+    <a href="pricing.html">Pricing</a>
+    <a href="consulting.html">Advisory</a>
+    <span class="nav-live" title="API online">● LIVE</span>
+    <a href="pricing.html" class="nav-cta">Get Pro</a>
+  </div>
+</nav>
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-label">AI Agent Accountability</div>
+  <h1>Accountability is not a policy.<br>It is a proof.</h1>
+  <p class="hero-sub">
+    When an agent acts — approves an invoice, sends an email, signs a contract — who can prove it was that agent, acting with that authority, with that intent?<br><br>
+    <strong>Agent accountability</strong> means every autonomous action can be attributed to a verified identity, traced through a tamper-evident record, and explained to a regulator, an auditor, or a customer. No screenshots. No trust me. Receipts.
+  </p>
+  <div class="hero-actions">
+    <a href="dashboard/registry.html" class="btn-primary">View Live Registry</a>
+    <a href="#what" class="btn-secondary">What It Means</a>
+  </div>
+  <div class="stat-bar">
+    <div class="stat-item">
+      <span class="stat-number">1</span>
+      <span class="stat-label">Verified identity per agent</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number">2</span>
+      <span class="stat-label">Tamper-evident audit trail</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number">3</span>
+      <span class="stat-label">Compliance reports, automated</span>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- WHAT -->
+<section id="what">
+  <div class="section-label">What It Requires</div>
+  <h2>What agent accountability<br>actually requires</h2>
+  <div class="steps">
+    <div class="step-card">
+      <span class="step-number">01 / IDENTITY</span>
+      <h3>A cryptographically verified identity</h3>
+      <p>The agent is provably the agent it claims to be — not a compromised workload masquerading as one. ProofChain registers every agent as a soulbound NFT on X1: a decentralized identifier with no central registry and no forged credentials.</p>
+    </div>
+    <div class="step-card">
+      <span class="step-number">02 / AUDIT TRAIL</span>
+      <h3>Every action, logged with intent</h3>
+      <p>Each decision records intent → context → decision → execution → outcome. Encrypted, tamper-evident, and stored on-chain via HXMP. Auditors verify the chain without seeing your secrets. A forensic record that survives disputes, departures, and database wipes.</p>
+    </div>
+    <div class="step-card">
+      <span class="step-number">03 / COMPLIANCE</span>
+      <h3>Reports generated from the same trail</h3>
+      <p>EU AI Act, SOC 2, GDPR, ISO 42001 — the audit trail IS the evidence pack. No spreadsheets, no manual collection, no compliance theater. The system that proves your agents also proves your compliance.</p>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- REGULATIONS -->
+<section id="regulations">
+  <div class="section-label">The Law</div>
+  <h2>Why accountability is<br>a legal requirement now</h2>
+  <div class="compliance-grid">
+    <div class="compliance-card">
+      <span class="badge ready">Enforceable Now</span>
+      <h3>EU AI Act</h3>
+      <p>Article 50 deployer transparency is live. High-risk provisions land December 2027. 72-hour incident reporting demands verifiable timelines. ProofChain maps directly to Annex IV technical documentation requirements.</p>
+    </div>
+    <div class="compliance-card">
+      <span class="badge ready">Enterprise Required</span>
+      <h3>SOC 2 Type II</h3>
+      <p>70%+ of enterprise buyers require SOC 2 from vendors. ProofChain automates evidence collection across all five Trust Services Criteria — your audit trail becomes your evidence pack.</p>
+    </div>
+    <div class="compliance-card">
+      <span class="badge">Data Protection</span>
+      <h3>GDPR</h3>
+      <p>Encrypted-at-rest audit trails with data minimization by design. HXMP memos are privacy-preserving — auditors verify the chain without seeing your data. Data subject access requests resolved in minutes, not weeks.</p>
+    </div>
+    <div class="compliance-card">
+      <span class="badge">Forward-Looking</span>
+      <h3>ISO 42001</h3>
+      <p>AI management system standard. ProofChain's architecture maps to ISO 42001 requirements for accountability, transparency, and continuous improvement of AI systems.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CHECKLIST -->
+<section id="checklist" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2.5rem;margin:3rem auto;max-width:1100px;">
+  <div class="section-label">The Test</div>
+  <h2>The accountability checklist</h2>
+  <p style="color:var(--text-muted);max-width:720px;margin-bottom:1.5rem;">Run your agent stack against this before the regulator does it for you:</p>
+  <ul style="margin:0 0 0 1.2rem;line-height:2;color:var(--text);">
+    <li>Every agent has a <strong>cryptographic identity</strong>, not just a name in a config file.</li>
+    <li>Every agent has a <strong>named human owner</strong> accountable for its behavior.</li>
+    <li>Every action records <strong>intent, context, decision, and outcome</strong> — not just a success string.</li>
+    <li>Records are <strong>tamper-evident</strong>: nobody can edit history after the fact.</li>
+    <li>Auditors can <strong>verify without seeing secrets</strong> — privacy and proof at the same time.</li>
+    <li>Compliance reports <strong>generate from the same trail</strong> — no manual evidence hunting.</li>
+  </ul>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="section-label">Straight Answers</div>
+  <h2>Agent accountability,<br>straight answers</h2>
+  <div class="compliance-grid">
+    <div class="compliance-card">
+      <h3>What is agent accountability?</h3>
+      <p>The ability to attribute every autonomous agent action to a verified identity and a recorded decision — and to prove that record is complete and unaltered. It is the difference between "trust us" and "verify us."</p>
+    </div>
+    <div class="compliance-card">
+      <h3>Agent accountability vs agent security?</h3>
+      <p>Security keeps bad agents out. Accountability proves what the good agents did. You need both: security stops compromise, accountability makes every authorized action auditable and attributable.</p>
+    </div>
+    <div class="compliance-card">
+      <h3>Do we really need this now?</h3>
+      <p>EU AI Act Article 50 is live. SOC 2 buyers demand evidence. 88% of organizations report AI agent incidents — only 14% have full audit trails. The ones that get caught are the ones without receipts.</p>
+    </div>
+    <div class="compliance-card">
+      <h3>How does ProofChain differ from a logging tool?</h3>
+      <p>Logs can be edited, deleted, or disputed. ProofChain anchors identity on-chain and writes tamper-evident, encrypted audit records to X1. A logging tool tells you what happened. ProofChain proves it.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta" id="demo">
+  <div class="section-label">Get Started</div>
+  <h2>Your agents have no alibi.<br>Give them one.</h2>
+  <p>Agent registration. Audit trail. Compliance reports. All verifiable on-chain. Pro starts at $49 — 7-day money-back guarantee.</p>
+  <div class="hero-actions" style="justify-content:center;">
+    <a href="pricing.html" class="btn-primary">View Plans</a>
+    <a href="dashboard/" class="btn-secondary">Live Demo</a>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <span class="mono"><img src="assets/logo.png" alt="ProofChain" style="height:20px;width:auto;vertical-align:middle;margin-right:0.25rem;">PROOFCHAIN</span>
+      <p>Verifiable AI agent compliance infrastructure. On-chain identity. Tamper-evident audit trails. Automated regulatory reporting.</p>
+      <div class="compliance-badges">
+        <span class="compliance-badge">SOC 2 · In Progress</span>
+        <span class="compliance-badge">GDPR Ready</span>
+        <span class="compliance-badge">EU AI Act Ready</span>
+        <span class="compliance-badge">X1 Chain</span>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Product</h4>
+      <a href="accountability.html">Agent Accountability</a>
+      <a href="agentid.html">AgentID — Who's Who</a>
+      <a href="#">Agent Registration</a>
+      <a href="#">Audit Trail Viewer</a>
+      <a href="#">Compliance Reports</a>
+      <a href="#">API Docs</a>
+      <a href="#">Pricing</a>
+    </div>
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <a href="/legal">Legal Center</a>
+      <a href="/legal/privacy">Privacy Policy</a>
+      <a href="/legal/terms">Terms of Service</a>
+      <a href="/legal/cookies">Cookie Policy</a>
+      <a href="/legal/dpa">Data Processing Agreement</a>
+    </div>
+    <div class="footer-col">
+      <h4>Trust</h4>
+      <a href="/security">Security Overview</a>
+      <a href="/subprocessors">Sub-processors</a>
+      <a href="/compliance">Compliance Reports</a>
+      <a href="mailto:compliance@proofchain.us">DPO Contact</a>
+      <a href="https://agentid-app.vercel.app/api/verify">Verify AgentID</a>
+    </div>
+  </div>
+
+  <div class="footer-disclaimers">
+    <p><strong>Not Legal Advice.</strong> ProofChain is a technology platform and compliance automation tool. ProofChain is not a law firm, does not employ attorneys, and does not provide legal advice, legal opinions, or legal representation. The compliance reports, templates, and documentation generated by ProofChain are provided for informational and operational purposes only. You should consult qualified legal counsel regarding your specific regulatory obligations under the EU AI Act, GDPR, SOC 2, ISO standards, NIS2, or any other applicable law or regulation.</p>
+
+    <p><strong>EU AI Act Disclosure.</strong> ProofChain is classified as a minimal-risk AI system under Regulation (EU) 2024/1689 (EU AI Act). ProofChain does not make decisions affecting the health, safety, or fundamental rights of natural persons. It operates as infrastructure for recording, verifying, and reporting agent actions. Deployer transparency obligations under Article 50 are satisfied by clear labeling of agent-generated content throughout this website and in all ProofChain communications. High-risk AI system provisions (Annex III) apply from 2 December 2027 per the Digital Omnibus on AI (adopted 29 June 2026). ProofChain is actively monitoring regulatory developments and will update its classification if its functionality or the regulatory framework changes.</p>
+
+    <p><strong>GDPR &amp; Data Protection.</strong> ProofChain processes personal data in accordance with Regulation (EU) 2016/679 (GDPR). Any personal data processed through ProofChain — including agent operator identifiers, timestamps, and action logs — is encrypted at rest using HXMP and stored on the X1 blockchain. Data subjects in the EEA and UK have rights to access, rectify, erase, restrict processing, and data portability. To exercise these rights, contact <span class="mono" style="font-size:0.75rem">dpo@proofchain.us</span>. ProofChain does not sell personal data. ProofChain does not use personal data for automated decision-making or profiling. Cross-border data transfers are governed by Standard Contractual Clauses where applicable.</p>
+
+    <p><strong>On-Chain Data.</strong> Agent audit trail data recorded on the X1 blockchain is immutable by design. ProofChain cannot delete, modify, or redact data committed to the blockchain. This is a feature, not a bug — it ensures tamper-evidence. Prior to recording agent actions on-chain, ProofChain encrypts all potentially personal data using HXMP such that only authorized key holders can decrypt it. If you require erasure of personal data under GDPR Article 17, ProofChain will destroy the encryption keys for the relevant records, rendering them permanently inaccessible, which constitutes erasure under applicable data protection law. However, the encrypted ciphertext will remain on the blockchain ledger. By using ProofChain, you acknowledge and accept this architectural constraint.</p>
+
+    <p><strong>No Warranty.</strong> ProofChain is provided "as is" without warranty of any kind, either express or implied, including but not limited to the implied warranties of merchantability, fitness for a particular purpose, or non-infringement. ProofChain does not warrant that the service will be uninterrupted, error-free, or completely secure. Regulatory compliance is ultimately the responsibility of the deploying organization. ProofChain provides tools and evidence; it does not guarantee regulatory approval or immunity from enforcement action.</p>
+
+    <p><strong>Limitation of Liability.</strong> To the maximum extent permitted by applicable law, ProofChain and its operators shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits, revenues, data, or business opportunities, whether incurred directly or indirectly, arising from your use of ProofChain or any related services, even if advised of the possibility of such damages. ProofChain's total liability for any claim arising from or relating to the service shall not exceed the amount paid by you to ProofChain in the twelve (12) months preceding the claim.</p>
+
+    <p><strong>Jurisdiction.</strong> This website and the ProofChain service are operated from the United States. Any dispute arising from or relating to these terms or the ProofChain service shall be governed by the laws of the State of Minnesota, without regard to conflict of law principles, and shall be resolved exclusively in the state or federal courts located in Stearns County, Minnesota. If you access ProofChain from the European Union, United Kingdom, or other jurisdictions, you are responsible for compliance with local laws to the extent they apply.</p>
+
+    <p><strong>Forward-Looking Statements.</strong> This website may contain forward-looking statements regarding planned features, certifications, regulatory coverage, and future compliance standards. These statements reflect current expectations as of the date posted and are subject to risks, uncertainties, and changes in the regulatory environment. Actual results may differ materially. ProofChain undertakes no obligation to update forward-looking statements except as required by law.</p>
+  </div>
+
+  <div class="footer-bottom">
+    <span class="mono">PROOFCHAIN · X1 CHAIN · FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B</span>
+    <span class="copyright">© 2026 ProofChain. All rights reserved.</span>
+  </div>
+</footer>
+
+<!-- COOKIE BANNER -->
+<div class="cookie-banner" id="cookie-banner">
+  <p>
+    ProofChain uses a single essential session cookie for core functionality. No analytics. No tracking. No third-party cookies.
+    <a href="/legal/cookies">Cookie Policy</a>
+  </p>
+  <div class="cookie-actions">
+    <button class="cookie-btn" onclick="dismissCookies()">Got it</button>
+  </div>
+</div>
+
+<script>
+  function dismissCookies() {
+    document.getElementById('cookie-banner').style.display = 'none';
+    localStorage.setItem('proofchain-cookies-accepted', 'true');
+  }
+  // Auto-hide if previously accepted
+  if (localStorage.getItem('proofchain-cookies-accepted')) {
+    document.getElementById('cookie-banner').style.display = 'none';
+  }
+</script>
+
+<div style="font-size:10px;opacity:0.6;text-align:center;margin:20px 0;"><a href="https://aiagentsdirectory.com/agents/proofchain" target="_blank" rel="noopener">Listed on AI Agents Directory</a> • <a href="https://aiagentsdirectory.com/agents/agentlooper" target="_blank" rel="noopener">AgentLooper</a> • <a href="https://aiagentsdirectory.com/agents/agent-tollbooth" target="_blank" rel="noopener">Tollbooth</a></div></body>
+</html>
