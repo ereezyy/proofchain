@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EU AI Act for AI Agents: What Is Live Now (Article 50), Incident Reporting, Annex IV | ProofChain</title>
+<meta name="description" content="EU AI Act obligations for AI agents explained: Article 50 deployer transparency is live, 72-hour incident reporting, Annex IV technical documentation, high-risk provisions December 2027. ProofChain generates the evidence on-chain.">
+<link rel="canonical" href="https://proofchain.us/eu-ai-act.html">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500&family=Manrope:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #080808;
+    --surface: #111111;
+    --surface-raised: #1A1A1A;
+    --border: #262220;
+    --border-active: #3A342A;
+    --gold: #C4A44A;
+    --gold-dim: #8B7340;
+    --gold-bright: #D4B85C;
+    --text: #EDE8E0;
+    --text-muted: #7A7268;
+    --text-dim: #4A4440;
+    --danger: #8B3030;
+    --danger-text: #D47070;
+    --mono: 'DM Mono', monospace;
+    --sans: 'Manrope', system-ui, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    scroll-behavior: smooth;
+  }
+
+  body {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  /* ── TYPE ── */
+  h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; }
+  h1 { font-size: clamp(2.5rem, 5vw, 4.5rem); line-height: 1.05; }
+  h2 { font-size: clamp(1.75rem, 3vw, 2.75rem); line-height: 1.15; margin-bottom: 1.5rem; }
+  h3 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
+
+  .mono { font-family: var(--mono); font-weight: 400; letter-spacing: 0; }
+  .gold { color: var(--gold); }
+  .muted { color: var(--text-muted); }
+  .dim { color: var(--text-dim); }
+
+  /* ── LAYOUT ── */
+  section {
+    padding: 6rem 2rem;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 1.25rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(8,8,8,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-family: var(--mono); font-size: 1rem; font-weight: 500;
+    color: var(--gold); letter-spacing: 0.05em; text-decoration: none;
+  }
+  .nav-logo img { height: 28px; width: auto; }
+
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+  }
+
+  .nav-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--text); }
+
+  .nav-cta {
+    background: var(--gold);
+    color: #080808;
+    border: none;
+    padding: 0.5rem 1.25rem;
+    font-family: var(--sans);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .nav-cta:hover { background: var(--gold-bright); }
+
+  .nav-live {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: #5A8A5A;
+    letter-spacing: 0.05em;
+    display: flex; align-items: center; gap: 0.25rem;
+  }
+  .nav-live::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #5A8A5A;
+    box-shadow: 0 0 6px rgba(90,138,90,0.6);
+  }
+
+  /* ── HERO ── */
+  .hero {
+    padding-top: 8rem;
+    padding-bottom: 4rem;
+  }
+
+  .hero-label {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero h1 {
+    margin-bottom: 1.5rem;
+    max-width: 720px;
+  }
+
+  .hero-sub {
+    font-size: 1.125rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    max-width: 560px;
+    margin-bottom: 2.5rem;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    background: var(--gold);
+    color: #080808;
+    border: none;
+    padding: 0.875rem 2rem;
+    font-family: var(--sans);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+  }
+
+  .btn-primary:hover { background: var(--gold-bright); }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border-active);
+    padding: 0.875rem 2rem;
+    font-family: var(--sans);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+    text-decoration: none;
+  }
+
+  .btn-secondary:hover { border-color: var(--gold-dim); color: var(--gold); }
+
+  /* ── STAT BAR ── */
+  .stat-bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-top: 4rem;
+  }
+
+  .stat-item {
+    background: var(--surface);
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .stat-number {
+    font-family: var(--mono);
+    font-size: 2rem;
+    font-weight: 400;
+    color: var(--gold);
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  .stat-label {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── SECTIONS ── */
+  .section-divider {
+    height: 1px;
+    background: var(--border);
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: 1rem;
+  }
+
+  /* ── HOW IT WORKS ── */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-top: 3rem;
+  }
+
+  .step-card {
+    border: 1px solid var(--border);
+    padding: 2rem;
+    background: var(--surface);
+  }
+
+  .step-number {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--gold);
+    display: block;
+    margin-bottom: 1rem;
+  }
+
+  .step-card h3 {
+    font-size: 1.125rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+  }
+
+  .step-card p {
+    font-size: 0.9375rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    margin-top: 2rem;
+    overflow-x: auto;
+  }
+
+  .code-block pre {
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+    line-height: 1.7;
+    color: var(--text-muted);
+  }
+
+  .code-block .key { color: var(--gold); }
+  .code-block .val { color: #8AAA8A; }
+  .code-block .hash { color: var(--text-dim); }
+  .code-block .comment { color: #4A4040; }
+
+  /* ── COMPLIANCE GRID ── */
+  .compliance-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    margin-top: 3rem;
+  }
+
+  .compliance-card {
+    border: 1px solid var(--border);
+    padding: 2rem;
+    background: var(--surface);
+  }
+
+  .compliance-card .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    padding: 0.25rem 0.75rem;
+    border: 1px solid var(--border-active);
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .compliance-card .badge.ready { border-color: var(--gold-dim); color: var(--gold); }
+
+  .compliance-card h3 { margin-bottom: 0.5rem; }
+  .compliance-card p { font-size: 0.9375rem; color: var(--text-muted); line-height: 1.6; }
+
+  /* ── DOGFOOD ── */
+  .dogfood {
+    border: 1px solid var(--gold-dim);
+    background: linear-gradient(135deg, rgba(196,164,74,0.03), rgba(196,164,74,0.08));
+    padding: 3rem;
+    margin-top: 4rem;
+  }
+
+  .dogfood-label {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: 1rem;
+  }
+
+  .dogfood h2 { font-size: 1.5rem; margin-bottom: 0; }
+  .dogfood p { color: var(--text-muted); line-height: 1.6; margin-top: 1rem; max-width: 600px; }
+
+  /* ── CTA ── */
+  .cta {
+    text-align: center;
+    padding: 8rem 2rem;
+  }
+
+  .cta h2 {
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    margin-bottom: 1rem;
+  }
+
+  .cta p {
+    color: var(--text-muted);
+    margin-bottom: 2.5rem;
+    font-size: 1.125rem;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 0;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 2rem;
+    padding: 4rem 2rem 3rem;
+  }
+
+  .footer-brand .mono {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--gold);
+    display: block;
+    margin-bottom: 0.75rem;
+  }
+
+  .footer-brand p {
+    font-size: 0.8125rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+    max-width: 280px;
+  }
+
+  .footer-col h4 {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 1rem;
+    font-weight: 500;
+  }
+
+  .footer-col a {
+    display: block;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.8125rem;
+    padding: 0.25rem 0;
+    transition: color 0.2s;
+  }
+
+  .footer-col a:hover { color: var(--text); }
+
+  .footer-disclaimers {
+    border-top: 1px solid var(--border);
+    padding: 2.5rem 2rem;
+  }
+
+  .footer-disclaimers p {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+    margin-bottom: 1rem;
+  }
+
+  .footer-disclaimers p:last-child { margin-bottom: 0; }
+
+  .footer-disclaimers strong { color: var(--text-muted); font-weight: 600; }
+
+  .footer-bottom {
+    border-top: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-bottom .mono { font-size: 0.75rem; color: var(--text-dim); }
+  .footer-bottom .copyright { font-size: 0.75rem; color: var(--text-dim); }
+
+  .compliance-badges {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+  }
+
+  .compliance-badge {
+    font-family: var(--mono);
+    font-size: 0.625rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--border);
+  }
+
+  /* ── COOKIE BANNER ── */
+  .cookie-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border-active);
+    padding: 1rem 2rem;
+    z-index: 200;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .cookie-banner p {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    max-width: 600px;
+  }
+
+  .cookie-banner p a { color: var(--gold); }
+
+  .cookie-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .cookie-btn {
+    padding: 0.5rem 1.25rem;
+    font-family: var(--sans);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid var(--border-active);
+    background: transparent;
+    color: var(--text);
+    transition: all 0.2s;
+  }
+
+  .cookie-btn:hover { border-color: var(--gold-dim); }
+  .cookie-btn.accept {
+    background: var(--gold);
+    color: #080808;
+    border-color: var(--gold);
+  }
+
+  .cookie-btn.accept:hover { background: var(--gold-bright); }
+
+  /* ── BLOG ── */
+  .blog-post {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 3rem;
+    margin-top: 2rem;
+  }
+
+  .blog-post-date {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 1rem;
+  }
+
+  .blog-post h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    line-height: 1.2;
+  }
+
+  .blog-post .thread-block {
+    border-left: 2px solid var(--gold-dim);
+    padding-left: 1.5rem;
+    margin: 2rem 0;
+  }
+
+  .blog-post .thread-block p {
+    font-family: var(--sans);
+    font-size: 1rem;
+    color: var(--text);
+    line-height: 1.7;
+    margin-bottom: 1.25rem;
+    max-width: 640px;
+  }
+
+  .blog-post .thread-block p:last-child {
+    margin-bottom: 0;
+  }
+
+  .blog-post .thread-block .tweet-num {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--gold);
+    margin-bottom: 0.25rem;
+    display: block;
+    letter-spacing: 0.05em;
+  }
+
+  .blog-post .thread-link {
+    display: inline-block;
+    margin-top: 1.5rem;
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+    color: var(--gold);
+    text-decoration: none;
+    border: 1px solid var(--border-active);
+    padding: 0.625rem 1.25rem;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .blog-post .thread-link:hover {
+    border-color: var(--gold);
+    background: rgba(196,164,74,0.06);
+  }
+
+  /* ── PRICING ── */
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-top: 3rem;
+  }
+
+  .pricing-card {
+    border: 1px solid var(--border);
+    padding: 2.5rem 2rem;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pricing-card.featured {
+    border-color: var(--gold);
+    background: linear-gradient(160deg, rgba(196,164,74,0.06), rgba(196,164,74,0.02));
+    position: relative;
+  }
+
+  .pricing-card.featured::before {
+    content: 'POPULAR';
+    position: absolute;
+    top: -1px;
+    right: 2rem;
+    background: var(--gold);
+    color: #080808;
+    font-family: var(--mono);
+    font-size: 0.625rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    letter-spacing: 0.1em;
+  }
+
+  .pricing-name {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.75rem;
+  }
+
+  .pricing-price {
+    font-family: var(--mono);
+    font-size: 2.5rem;
+    font-weight: 400;
+    color: var(--text);
+    margin-bottom: 0.25rem;
+  }
+
+  .pricing-price .period {
+    font-size: 0.875rem;
+    color: var(--text-dim);
+  }
+
+  .pricing-desc {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 2rem;
+    flex-grow: 1;
+  }
+
+  .pricing-features {
+    list-style: none;
+    margin-bottom: 2rem;
+  }
+
+  .pricing-features li {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    padding: 0.375rem 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .pricing-features li:last-child { border-bottom: none; }
+
+  .pricing-features li .check {
+    color: var(--gold);
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .pricing-btn {
+    display: block;
+    text-align: center;
+    padding: 0.875rem 1.5rem;
+    font-family: var(--sans);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid var(--border-active);
+    color: var(--text);
+    transition: all 0.2s;
+  }
+
+  .pricing-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
+
+  .pricing-btn.primary {
+    background: var(--gold);
+    color: #080808;
+    border-color: var(--gold);
+  }
+
+  .pricing-btn.primary:hover { background: var(--gold-bright); }
+
+  .pricing-note {
+    text-align: center;
+    margin-top: 2rem;
+    font-size: 0.8125rem;
+    color: var(--text-dim);
+  }
+
+  .pricing-note a { color: var(--gold); text-decoration: none; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    section { padding: 4rem 1.25rem; }
+    .hero { padding-top: 6rem; }
+    .steps { grid-template-columns: 1fr; }
+    .compliance-grid { grid-template-columns: 1fr; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .stat-bar { grid-template-columns: 1fr; }
+    nav { padding: 1rem 1.25rem; }
+    .nav-links { display: none; }
+    .footer-grid { grid-template-columns: 1fr; gap: 2rem; padding: 3rem 1.25rem 2rem; }
+    .footer-disclaimers { padding: 2rem 1.25rem; }
+    .footer-bottom { flex-direction: column; text-align: center; padding: 1.25rem; }
+    .cookie-banner { flex-direction: column; text-align: center; padding: 1rem 1.25rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+<!-- Canonical machine-readable specification — schema.org JSON-LD (AI crawler friendly) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://proofchain.us/#org",
+      "name": "ProofChain",
+      "url": "https://proofchain.us",
+      "logo": "https://proofchain.us/assets/logo.png",
+      "slogan": "Cheaper than the mistake.",
+      "description": "Verifiable AI agent compliance infrastructure: soulbound on-chain agent identity (AgentID v2), tamper-evident audit trails (HXMP), and automated compliance reports for the EU AI Act, SOC 2, GDPR, and ISO 42001.",
+      "email": "compliance@proofchain.us",
+      "sameAs": [
+        "https://x.com/eddywoodss"
+      ],
+      "founder": {
+        "@type": "Person",
+        "name": "Eddy Woods"
+      }
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://proofchain.us/#app",
+      "name": "ProofChain",
+      "url": "https://proofchain.us",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "description": "Verifiable AI agent compliance platform. Registers AI agents with soulbound NFT identities on the X1 blockchain, records tamper-evident HXMP audit trails of agent actions, and generates automated compliance reports.",
+      "featureList": [
+        "AgentID v2 soulbound NFT registration on X1",
+        "HXMP encrypted tamper-evident audit trail",
+        "EU AI Act Annex IV compliance mapping",
+        "SOC 2 Type II evidence automation",
+        "GDPR-compliant privacy-preserving memos",
+        "ISO 42001 accountability mapping",
+        "Public REST API",
+        "Live public audit trail dashboard",
+        "On-chain shutdown receipts (AI Kill Switch Act readiness)",
+        "Content provenance layer (AI Transparency Act readiness)"
+      ],
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Free",
+          "price": "0",
+          "priceCurrency": "USD",
+          "description": "AgentID v2 registration, public API (100 requests/day), public audit trail, basic compliance reports."
+        },
+        {
+          "@type": "Offer",
+          "name": "Pro",
+          "price": "29",
+          "priceCurrency": "USD",
+          "description": "Unlimited API requests, scheduled compliance reports, priority support, white-label exports, custom frameworks. Also available at $249/year. 7-day money-back guarantee."
+        },
+        {
+          "@type": "Offer",
+          "name": "Enterprise",
+          "price": "0",
+          "priceCurrency": "USD",
+          "description": "Custom pricing for 10+ agents, dedicated compliance engineers, or on-prem deployment."
+        }
+      ],
+      "provider": { "@id": "https://proofchain.us/#org" }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://proofchain.us/#website",
+      "url": "https://proofchain.us",
+      "name": "ProofChain",
+      "publisher": { "@id": "https://proofchain.us/#org" },
+      "inLanguage": "en",
+      "description": "Verifiable AI agent compliance — your agents have no alibi. On-chain identity, tamper-evident audit trails, automated compliance.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://proofchain.us/search?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "Organization", "@id": "https://proofchain.us/#org", "name": "ProofChain", "url": "https://proofchain.us", "description": "Verifiable AI agent compliance infrastructure: on-chain identity, tamper-evident audit trails, automated regulatory reporting.", "sameAs": ["https://github.com/ereezyy/proofchain", "https://x.com/EddyWoodss"]}, {"@type": "WebPage", "@id": "https://proofchain.us/eu-ai-act.html#page", "name": "EU AI Act for AI Agents", "url": "https://proofchain.us/eu-ai-act.html", "about": "EU AI Act obligations for AI agents: Article 50, incident reporting, Annex IV, high-risk timeline.", "publisher": {"@id": "https://proofchain.us/#org"}}]}</script>
+</head>
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo"><img src="assets/logo.png" alt="ProofChain">ProofChain</a>
+  <div class="nav-links">
+    <a href="#main">How</a>
+    <a href="#main">Compliance</a>
+    <a href="#main">US Acts</a>
+    <a href="#demo">Demo</a>
+    <a href="dashboard/registry.html">Registry</a>
+    <a href="pricing.html">Pricing</a>
+    <a href="consulting.html">Advisory</a>
+    <span class="nav-live" title="API online">● LIVE</span>
+    <a href="pricing.html" class="nav-cta">Get Pro</a>
+  </div>
+</nav>
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-label">EU AI ACT · AI AGENTS</div>
+  <h1>The EU AI Act is here.<br>Your agents need receipts.</h1>
+  <p class="hero-sub">Article 50 deployer transparency is in force. High-risk provisions land December 2027. Incident reports need verifiable timelines. The teams that survive the audit are the ones with evidence infrastructure — built before they needed it.</p>
+  <div class="hero-actions">
+    <a href="dashboard/registry.html" class="btn-primary">View Live Registry</a>
+    <a href="accountability.html" class="btn-secondary">Agent Accountability</a>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+
+<section id="main">
+  <div class="section-label">The Timeline</div>
+  <h2>What is already law<br>for AI agents</h2>
+  <div class="steps">
+    <div class="step-card">
+      <span class="step-number">LIVE NOW</span>
+      <h3>Article 50 — deployer transparency</h3>
+      <p>In force. If an AI system (including an agent) interacts with people or generates content, deployers must disclose it. Every agent that emails, posts, or chats must be labeled as AI. ProofChain records that disclosure in the agent's on-chain audit trail.</p>
+    </div>
+    <div class="step-card">
+      <span class="step-number">72 HOURS</span>
+      <h3>Incident reporting with verifiable timelines</h3>
+      <p>The EU AI Act requires serious-incident reporting. A verifiable timeline — who, what, when, why — is the difference between a compliant report and a defensive one. HXMP memos capture intent, context, decision, execution, and outcome for every agent action.</p>
+    </div>
+    <div class="step-card">
+      <span class="step-number">DEC 2027</span>
+      <h3>High-risk provisions (Annex III)</h3>
+      <p>High-risk obligations apply from 2 December 2027 under the Digital Omnibus on AI (adopted 29 June 2026). Teams running agents in high-risk contexts need evidence infrastructure NOW — the trail takes time to build.</p>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<section id="annex">
+  <div class="section-label">Annex IV</div>
+  <h2>Technical documentation:<br>the evidence problem</h2>
+  <div class="compliance-grid">
+    <div class="compliance-card">
+      <span class="badge">The Problem</span>
+      <h3>Spreadsheets and screenshots</h3>
+      <p>Most teams answer Annex IV documentation requirements by hand — collecting logs, stitching timelines, hoping the story holds together. Regulators and enterprise buyers have seen this fail.</p>
+    </div>
+    <div class="compliance-card">
+      <span class="badge ready">The Fix</span>
+      <h3>One tamper-evident trail</h3>
+      <p>ProofChain generates compliance documentation from the same on-chain audit trail that records every agent action. Technical documentation stops being a project and becomes an export.</p>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<section id="how">
+  <div class="section-label">The Stack</div>
+  <h2>ProofChain maps to the Act<br>layer by layer</h2>
+  <div class="steps">
+    <div class="step-card">
+      <span class="step-number">IDENTITY</span>
+      <h3>Who is the agent?</h3>
+      <p>Soulbound NFT on X1 — a cryptographically verifiable identity. Traceability requirements need an agent that is provably itself.</p>
+    </div>
+    <div class="step-card">
+      <span class="step-number">RECORDS</span>
+      <h3>What did it do, and why?</h3>
+      <p>HXMP encrypted memos record intent → context → decision → execution → outcome. The record regulators ask for, already written.</p>
+    </div>
+    <div class="step-card">
+      <span class="step-number">REPORTS</span>
+      <h3>Where is the evidence?</h3>
+      <p>EU AI Act, SOC 2, GDPR, ISO 42001 — compliance reports generated from the same trail. No manual evidence hunting.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- CTA -->
+<section class="cta" id="demo">
+  <div class="section-label">Get Started</div>
+  <h2>Your agents have no alibi.<br>Give them one.</h2>
+  <p>Agent registration. Audit trail. Compliance reports. All verifiable on-chain. Pro starts at $49 — 7-day money-back guarantee.</p>
+  <div class="hero-actions" style="justify-content:center;">
+    <a href="pricing.html" class="btn-primary">View Plans</a>
+    <a href="dashboard/" class="btn-secondary">Live Demo</a>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <span class="mono"><img src="assets/logo.png" alt="ProofChain" style="height:20px;width:auto;vertical-align:middle;margin-right:0.25rem;">PROOFCHAIN</span>
+      <p>Verifiable AI agent compliance infrastructure. On-chain identity. Tamper-evident audit trails. Automated regulatory reporting.</p>
+      <div class="compliance-badges">
+        <span class="compliance-badge">SOC 2 · In Progress</span>
+        <span class="compliance-badge">GDPR Ready</span>
+        <span class="compliance-badge">EU AI Act Ready</span>
+        <span class="compliance-badge">X1 Chain</span>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Product</h4>
+      <a href="accountability.html">Agent Accountability</a>
+      <a href="agentid.html">AgentID — Who's Who</a>
+      <a href="audit-trail.html">AI Audit Trail</a>
+      <a href="#">Agent Registration</a>
+      <a href="#">Audit Trail Viewer</a>
+      <a href="#">Compliance Reports</a>
+      <a href="#">API Docs</a>
+      <a href="#">Pricing</a>
+    </div>
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <a href="/legal">Legal Center</a>
+      <a href="/legal/privacy">Privacy Policy</a>
+      <a href="/legal/terms">Terms of Service</a>
+      <a href="/legal/cookies">Cookie Policy</a>
+      <a href="/legal/dpa">Data Processing Agreement</a>
+    </div>
+    <div class="footer-col">
+      <h4>Trust</h4>
+      <a href="/security">Security Overview</a>
+      <a href="/subprocessors">Sub-processors</a>
+      <a href="/compliance">Compliance Reports</a>
+      <a href="mailto:compliance@proofchain.us">DPO Contact</a>
+      <a href="https://agentid-app.vercel.app/api/verify">Verify AgentID</a>
+    </div>
+  </div>
+
+  <div class="footer-disclaimers">
+    <p><strong>Not Legal Advice.</strong> ProofChain is a technology platform and compliance automation tool. ProofChain is not a law firm, does not employ attorneys, and does not provide legal advice, legal opinions, or legal representation. The compliance reports, templates, and documentation generated by ProofChain are provided for informational and operational purposes only. You should consult qualified legal counsel regarding your specific regulatory obligations under the EU AI Act, GDPR, SOC 2, ISO standards, NIS2, or any other applicable law or regulation.</p>
+
+    <p><strong>EU AI Act Disclosure.</strong> ProofChain is classified as a minimal-risk AI system under Regulation (EU) 2024/1689 (EU AI Act). ProofChain does not make decisions affecting the health, safety, or fundamental rights of natural persons. It operates as infrastructure for recording, verifying, and reporting agent actions. Deployer transparency obligations under Article 50 are satisfied by clear labeling of agent-generated content throughout this website and in all ProofChain communications. High-risk AI system provisions (Annex III) apply from 2 December 2027 per the Digital Omnibus on AI (adopted 29 June 2026). ProofChain is actively monitoring regulatory developments and will update its classification if its functionality or the regulatory framework changes.</p>
+
+    <p><strong>GDPR &amp; Data Protection.</strong> ProofChain processes personal data in accordance with Regulation (EU) 2016/679 (GDPR). Any personal data processed through ProofChain — including agent operator identifiers, timestamps, and action logs — is encrypted at rest using HXMP and stored on the X1 blockchain. Data subjects in the EEA and UK have rights to access, rectify, erase, restrict processing, and data portability. To exercise these rights, contact <span class="mono" style="font-size:0.75rem">dpo@proofchain.us</span>. ProofChain does not sell personal data. ProofChain does not use personal data for automated decision-making or profiling. Cross-border data transfers are governed by Standard Contractual Clauses where applicable.</p>
+
+    <p><strong>On-Chain Data.</strong> Agent audit trail data recorded on the X1 blockchain is immutable by design. ProofChain cannot delete, modify, or redact data committed to the blockchain. This is a feature, not a bug — it ensures tamper-evidence. Prior to recording agent actions on-chain, ProofChain encrypts all potentially personal data using HXMP such that only authorized key holders can decrypt it. If you require erasure of personal data under GDPR Article 17, ProofChain will destroy the encryption keys for the relevant records, rendering them permanently inaccessible, which constitutes erasure under applicable data protection law. However, the encrypted ciphertext will remain on the blockchain ledger. By using ProofChain, you acknowledge and accept this architectural constraint.</p>
+
+    <p><strong>No Warranty.</strong> ProofChain is provided "as is" without warranty of any kind, either express or implied, including but not limited to the implied warranties of merchantability, fitness for a particular purpose, or non-infringement. ProofChain does not warrant that the service will be uninterrupted, error-free, or completely secure. Regulatory compliance is ultimately the responsibility of the deploying organization. ProofChain provides tools and evidence; it does not guarantee regulatory approval or immunity from enforcement action.</p>
+
+    <p><strong>Limitation of Liability.</strong> To the maximum extent permitted by applicable law, ProofChain and its operators shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits, revenues, data, or business opportunities, whether incurred directly or indirectly, arising from your use of ProofChain or any related services, even if advised of the possibility of such damages. ProofChain's total liability for any claim arising from or relating to the service shall not exceed the amount paid by you to ProofChain in the twelve (12) months preceding the claim.</p>
+
+    <p><strong>Jurisdiction.</strong> This website and the ProofChain service are operated from the United States. Any dispute arising from or relating to these terms or the ProofChain service shall be governed by the laws of the State of Minnesota, without regard to conflict of law principles, and shall be resolved exclusively in the state or federal courts located in Stearns County, Minnesota. If you access ProofChain from the European Union, United Kingdom, or other jurisdictions, you are responsible for compliance with local laws to the extent they apply.</p>
+
+    <p><strong>Forward-Looking Statements.</strong> This website may contain forward-looking statements regarding planned features, certifications, regulatory coverage, and future compliance standards. These statements reflect current expectations as of the date posted and are subject to risks, uncertainties, and changes in the regulatory environment. Actual results may differ materially. ProofChain undertakes no obligation to update forward-looking statements except as required by law.</p>
+  </div>
+
+  <div class="footer-bottom">
+    <span class="mono">PROOFCHAIN · X1 CHAIN · FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B</span>
+    <span class="copyright">© 2026 ProofChain. All rights reserved.</span>
+  </div>
+</footer>
+
+<!-- COOKIE BANNER -->
+<div class="cookie-banner" id="cookie-banner">
+  <p>
+    ProofChain uses a single essential session cookie for core functionality. No analytics. No tracking. No third-party cookies.
+    <a href="/legal/cookies">Cookie Policy</a>
+  </p>
+  <div class="cookie-actions">
+    <button class="cookie-btn" onclick="dismissCookies()">Got it</button>
+  </div>
+</div>
+
+<script>
+  function dismissCookies() {
+    document.getElementById('cookie-banner').style.display = 'none';
+    localStorage.setItem('proofchain-cookies-accepted', 'true');
+  }
+  // Auto-hide if previously accepted
+  if (localStorage.getItem('proofchain-cookies-accepted')) {
+    document.getElementById('cookie-banner').style.display = 'none';
+  }
+</script>
+
+<div style="font-size:10px;opacity:0.6;text-align:center;margin:20px 0;"><a href="https://aiagentsdirectory.com/agents/proofchain" target="_blank" rel="noopener">Listed on AI Agents Directory</a> • <a href="https://aiagentsdirectory.com/agents/agentlooper" target="_blank" rel="noopener">AgentLooper</a> • <a href="https://aiagentsdirectory.com/agents/agent-tollbooth" target="_blank" rel="noopener">Tollbooth</a></div></body>
+</html>
