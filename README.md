@@ -8,7 +8,7 @@
 
 ## What is ProofChain?
 
-ProofChain is an open-source compliance infrastructure layer for AI agents. It combines three technologies to create a tamper-evident, cryptographically verifiable record of everything an agent does:
+ProofChain is a compliance infrastructure layer for AI agents. It combines three technologies to create a tamper-evident, cryptographically verifiable record of everything an agent does:
 
 - **AgentID v2** — decentralized identity verification for AI agents, anchored on-chain via NFTs
 - **HXMP** — Hypermedia Transfer Protocol for agent-to-agent messaging, with full memo logging on the X1 blockchain
@@ -67,8 +67,8 @@ proofchain stop     # Stop the API
 | `GET` | `/api/health` | Full health check with X1 RPC status |
 | `GET` | `/api/agent/:wallet` | Verify agent identity via AgentID v2 |
 | `GET` | `/api/agents` | List all registered agents in the ProofChain registry |
-| `POST` | `/api/agents/register` | Register an agent wallet in the ProofChain registry |
-| `DELETE` | `/api/agents/:wallet` | Remove an agent from the registry |
+| `POST` | `/api/agents/register` | Register an agent wallet (requires API key) |
+| `DELETE` | `/api/agents/:wallet` | Remove an agent from the registry (requires API key) |
 | `GET` | `/api/audit/:wallet` | Get HXMP audit trail (supports `?type=` and `?limit=`) |
 | `GET` | `/api/audit/:wallet/timeline` | Chronological timeline of agent actions |
 | `GET` | `/api/compliance/:wallet/report` | Compliance report (JSON) — `?framework=eu-ai-act\|soc2\|gdpr` |
@@ -95,9 +95,10 @@ curl https://proofchain.us/api/compliance/FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ip
 # List all registered agents
 curl https://proofchain.us/api/agents
 
-# Register a new agent in the registry
+# Register a new agent (requires API key)
 curl -X POST https://proofchain.us/api/agents/register \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: YOUR_API_KEY" \
   -d '{"wallet":"YOUR_WALLET_ADDRESS"}'
 ```
 
@@ -119,9 +120,11 @@ ProofChain generates structured compliance reports for:
 
 Reports are available as JSON for programmatic consumption or as styled HTML for auditor review.
 
+> **Note:** Current reports are evidence-based summaries derived from on-chain audit records and AgentID verification. They are a starting point for compliance workflows, not a substitute for a formal audit by a qualified assessor.
+
 ## Production Deployment
 
-Deployed on Linode (172.236.112.52) with PM2 + nginx reverse proxy:
+Deployed on a managed VPS with PM2 + nginx reverse proxy:
 
 ```bash
 # PM2 ecosystem config at /opt/proofchain-api/ecosystem.config.cjs
@@ -174,7 +177,7 @@ proofchain/
 │   ├── index.html           # Dashboard UI (auto-detects localhost vs prod)
 │   └── register.html        # Agent registration page
 ├── server/
-│   ├── server.js            # Express API server (6 endpoints)
+│   ├── server.js            # Express API server
 │   ├── package.json         # ESM, 4 deps
 │   ├── ecosystem.config.cjs # PM2 production config (PORT=3458)
 │   └── lib/

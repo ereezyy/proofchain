@@ -3,27 +3,42 @@ ProofChain Python SDK
 Thin wrapper around the ProofChain compliance API.
 https://proofchain.us/api
 """
+import os
 import urllib.request
 import urllib.error
 import ssl
 import json
 from typing import Optional
 
-API_BASE = "https://proofchain.us/api"
+API_BASE = os.environ.get("PROOFCHAIN_API_URL", "https://proofchain.us/api").rstrip("/")
+API_KEY = os.environ.get("PROOFCHAIN_API_KEY")
 DEFAULT_WALLET = "FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B"
 
 _ctx = ssl.create_default_context()
 
-def _get(path: str, timeout: int = 30) -> dict:
+def _request(path: str, method: str = "GET", data: Optional[dict] = None, timeout: int = 30) -> dict:
     url = f"{API_BASE}{path}"
+    headers = {"Accept": "application/json"}
+    body = None
+    if data is not None:
+        body = json.dumps(data).encode("utf-8")
+        headers["Content-Type"] = "application/json"
+    if API_KEY:
+        headers["X-API-Key"] = API_KEY
+        headers["Authorization"] = f"Bearer {API_KEY}"
+    req = urllib.request.Request(url, data=body, headers=headers, method=method)
     try:
-        r = urllib.request.urlopen(url, context=_ctx, timeout=timeout)
+        r = urllib.request.urlopen(req, context=_ctx, timeout=timeout)
         return json.loads(r.read())
     except urllib.error.HTTPError as e:
-        body = e.read().decode() if e.fp else str(e)
-        return {"error": f"HTTP {e.code}: {body[:200]}"}
+        resp = e.read().decode() if e.fp else str(e)
+        return {"error": f"HTTP {e.code}: {resp[:200]}"}
     except Exception as e:
         return {"error": str(e)}
+
+
+def _get(path: str, timeout: int = 30) -> dict:
+    return _request(path, method="GET", timeout=timeout)
 
 
 def ping() -> dict:
@@ -62,8 +77,20 @@ def compliance(wallet: str = DEFAULT_WALLET, framework: str = "all") -> dict:
 def compliance_html(wallet: str = DEFAULT_WALLET, framework: str = "all") -> str:
     """Downloadable compliance report as styled HTML (for auditor review / PDF export)."""
     url = f"{API_BASE}/compliance/{wallet}/report/pdf?framework={framework}&format=html"
-    r = urllib.request.urlopen(url, context=_ctx, timeout=30)
+    headers = {"Accept": "text/html"}
+    if API_KEY:
+        headers["X-API-Key"] = API_KEY
+    req = urllib.request.Request(url, headers=headers)
+    r = urllib.request.urlopen(req, context=_ctx, timeout=30)
     return r.read().decode()
+
+
+def register(wallet: str, api_key: Optional[str] = None) -> dict:
+    """Register a wallet in the ProofChain registry. Requires an API key."""
+    key = api_key or API_KEY
+    if not key:
+        return {"error": "API key required. Set PROOFCHAIN_API_KEY or pass api_key."}
+    return _request("/agents/register", method="POST", data={"wallet": wallet})
 
 
 # ── Quick CLI ──
@@ -71,13 +98,19 @@ if __name__ == "__main__":
     import sys
     cmds = {
         "ping": ping, "health": health, "agent": agent,
-        "audit": audit, "timeline": timeline, "compliance": compliance
+        "audit": audit, "timeline": timeline, "compliance": compliance,
+        "register": register
     }
     cmd = sys.argv[1] if len(sys.argv) > 1 else "ping"
     wallet = sys.argv[2] if len(sys.argv) > 2 else DEFAULT_WALLET
     fn = cmds.get(cmd)
     if fn:
-        result = fn(wallet) if cmd in ("agent", "audit", "timeline", "compliance") else fn()
+        if cmd == "register":
+            result = fn(wallet)
+        elif cmd in ("agent", "audit", "timeline", "compliance"):
+            result = fn(wallet)
+        else:
+            result = fn()
         print(json.dumps(result, indent=2))
     else:
-        print(f"Usage: python proofchain.py [ping|health|agent|audit|timeline|compliance] [wallet]")
+        print(f"Usage: python proofchain.py [ping|health|agent|audit|timeline|compliance|register] [wallet]")

@@ -95,6 +95,8 @@ app.get('/api/compliance/:wallet/report', rateLimiter, async (req, res) => {
 function buildComplianceReport(agent, audit, framework) {
   const records = audit.records || [];
   const verified = agent.verified || false;
+  const hasRecords = records.length > 0;
+  const hasMultiple = records.length >= 5;
 
   const base = {
     generated_at: new Date().toISOString(),
@@ -105,41 +107,45 @@ function buildComplianceReport(agent, audit, framework) {
     total_records: records.length,
     record_types: [...new Set(records.map(r => r.type))],
     oldest_record: records[records.length - 1]?.timestamp || null,
-    newest_record: records[0]?.timestamp || null
+    newest_record: records[0]?.timestamp || null,
+    disclaimer: 'Evidence-based summary from on-chain records. Not a formal audit.'
   };
 
   const euAiAct = {
     framework: 'EU AI Act (Regulation 2024/1689)',
     classification: 'Minimal Risk — infrastructure tool',
-    article_50_transparency: verified ? 'COMPLIANT — agent content labeled' : 'NON-COMPLIANT',
-    article_12_record_keeping: records.length > 0 ? 'COMPLIANT — audit trail exists' : 'NON-COMPLIANT — no records',
-    annex_iv_technical_docs: records.length > 5 ? 'COMPLIANT — sufficient documentation' : 'PARTIAL',
-    incident_reporting_72h: records.length > 0 ? 'READY — timeline verifiable within 72h window' : 'NOT READY',
-    high_risk_provisions: 'Not applicable — classified minimal-risk (deadline Dec 2027)'
+    article_50_transparency: verified ? 'EVIDENCE PRESENT — agent identity verified on-chain' : 'NO EVIDENCE — agent not verified',
+    article_12_record_keeping: hasRecords ? 'EVIDENCE PRESENT — audit trail exists on-chain' : 'NO EVIDENCE — no records found',
+    annex_iv_technical_docs: hasMultiple ? 'EVIDENCE PRESENT — multiple documented actions' : 'INSUFFICIENT — fewer than 5 records',
+    incident_reporting_72h: hasRecords ? 'CAPABLE — timeline queryable within 72h window' : 'NOT CAPABLE — no records to query',
+    high_risk_provisions: 'Not applicable — classified minimal-risk (deadline Dec 2027)',
+    note: 'Status reflects available on-chain evidence, not formal compliance certification.'
   };
 
   const soc2 = {
     framework: 'SOC 2 Type II',
     trust_services_criteria: {
-      security: verified ? 'COMPLIANT — cryptographic identity verified' : 'NON-COMPLIANT',
+      security: verified ? 'EVIDENCE PRESENT — cryptographic identity verified' : 'NO EVIDENCE — identity unverified',
       availability: 'TO BE ASSESSED — requires monitoring period',
-      processing_integrity: records.length > 0 ? 'COMPLIANT — tamper-evident records' : 'NON-COMPLIANT',
-      confidentiality: 'COMPLIANT — HXMP encrypted at rest',
-      privacy: 'COMPLIANT — data minimization, encryption key destruction = erasure'
+      processing_integrity: hasRecords ? 'EVIDENCE PRESENT — tamper-evident records' : 'NO EVIDENCE — no records',
+      confidentiality: 'ASSUMED — HXMP claims encryption at rest (verify independently)',
+      privacy: 'ASSUMED — data minimization claimed (verify independently)'
     },
-    observation_period: records.length > 0 ? `${records.length} verifiable actions recorded` : 'No observation data',
-    evidence_pack: records.length > 0 ? 'Available — on-chain audit trail' : 'Not available'
+    observation_period: hasRecords ? `${records.length} verifiable actions recorded` : 'No observation data',
+    evidence_pack: hasRecords ? 'Available — on-chain audit trail' : 'Not available',
+    note: 'Trust Services Criteria require independent auditor assessment. This is evidence only.'
   };
 
   const gdpr = {
     framework: 'GDPR (Regulation 2016/679)',
-    data_encryption: 'COMPLIANT — HXMP encrypted at rest',
-    right_to_erasure: 'COMPLIANT — encryption key destruction = effective erasure (Art. 17)',
-    data_minimization: 'COMPLIANT — only operational agent data stored',
-    data_portability: 'COMPLIANT — audit trail exportable as JSON',
+    data_encryption: 'ASSUMED — HXMP claims encryption at rest (verify independently)',
+    right_to_erasure: 'CAPABLE — registry removal + key destruction available (Art. 17)',
+    data_minimization: 'ASSUMED — only operational agent data stored (verify independently)',
+    data_portability: 'CAPABLE — audit trail exportable as JSON',
     cross_border_transfers: 'Standard Contractual Clauses applicable',
     dpo_contact: 'dpo@proofchain.dev',
-    no_profiling: 'COMPLIANT — no automated decision-making or profiling'
+    no_profiling: 'CAPABLE — no automated decision-making or profiling detected in records',
+    note: 'GDPR compliance requires legal review. This is technical evidence only.'
   };
 
   const reports = {};
@@ -177,15 +183,15 @@ app.get('/api/compliance/:wallet/report/pdf', async (req, res) => {
 // ── Compliance Report HTML Generator ───────────────────
 function buildComplianceHtml(report) {
   const statusColor = (label) => {
-    if (label.startsWith('COMPLIANT') || label.startsWith('READY')) return '#2ECC40';
-    if (label.startsWith('PARTIAL') || label.startsWith('TO BE') || label.startsWith('NOT READY')) return '#C4A44A';
+    if (label.startsWith('EVIDENCE PRESENT') || label.startsWith('CAPABLE') || label.startsWith('ASSUMED')) return '#2ECC40';
+    if (label.startsWith('INSUFFICIENT') || label.startsWith('TO BE') || label.startsWith('NOT CAPABLE')) return '#C4A44A';
     return '#FF4136';
   };
 
   const statusBadge = (label) => {
     let cls = 'noncompliant';
-    if (label.startsWith('COMPLIANT') || label.startsWith('READY')) cls = 'compliant';
-    else if (label.startsWith('PARTIAL') || label.startsWith('TO BE') || label.startsWith('NOT READY')) cls = 'partial';
+    if (label.startsWith('EVIDENCE PRESENT') || label.startsWith('CAPABLE') || label.startsWith('ASSUMED')) cls = 'compliant';
+    else if (label.startsWith('INSUFFICIENT') || label.startsWith('TO BE') || label.startsWith('NOT CAPABLE')) cls = 'partial';
     return `<span class="badge ${cls}">${label}</span>`;
   };
 
@@ -503,6 +509,7 @@ function buildComplianceHtml(report) {
   <footer>
     <div class="verify">✓ Generated by ProofChain — Verifiable on X1</div>
     <div class="meta">Report generated: ${new Date(report.generated_at).toUTCString()}</div>
+    <div class="meta" style="margin-top:8px;font-size:11px;color:var(--text-dim)">Evidence-based summary. Not a formal compliance certification.</div>
     <div class="explorer">
       <a href="https://explorer.x1.xyz/address/${report.agent_wallet}" target="_blank">
         View on X1 Explorer →
@@ -546,8 +553,8 @@ app.get('/api/agents', async (_req, res) => {
   }
 });
 
-// ── Register an agent wallet ───────────────────────────
-app.post('/api/agents/register', async (req, res) => {
+// ── Register an agent wallet (requires API key) ────────
+app.post('/api/agents/register', requireApiKey, async (req, res) => {
   try {
     const { wallet } = req.body;
     if (!wallet) {
@@ -564,8 +571,8 @@ app.post('/api/agents/register', async (req, res) => {
   }
 });
 
-// ── Remove an agent from the registry ──────────────────
-app.delete('/api/agents/:wallet', (req, res) => {
+// ── Remove an agent from the registry (requires API key) ─
+app.delete('/api/agents/:wallet', requireApiKey, (req, res) => {
   const result = removeAgent(req.params.wallet);
   if (result.removed) {
     res.json({ status: 'removed', wallet: req.params.wallet });
@@ -696,6 +703,7 @@ app.listen(PORT, () => {
   console.log(`    GET /api/compliance/:wallet/report?framework=eu-ai-act|soc2|gdpr|all`);
   console.log(`    GET /api/compliance/:wallet/report/pdf?framework=all`);
   console.log(`    GET /api/agents`);
+  console.log(`  Protected (API key required):`);
   console.log(`    POST /api/agents/register`);
   console.log(`    DELETE /api/agents/:wallet`);
   console.log(`  Pro (API key required, unlimited):`);

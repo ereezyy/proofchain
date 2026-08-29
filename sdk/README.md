@@ -36,7 +36,7 @@ All functions return Promises. Every call hits the ProofChain REST API (`PROOFCH
 | Function | Description |
 |---|---|
 | `configure(opts)` | Set `apiUrl`, `apiKey`, `timeout` |
-| `registerAgent(params)` | Register a wallet in the ProofChain registry |
+| `registerAgent(params)` | Register a wallet in the ProofChain registry (requires API key) |
 | `verifyAgent(wallet)` | Check if a wallet is a registered agent |
 | `logAction(params)` | Build a tamper-evident HXMP envelope (client-side) |
 | `getAuditTrail(wallet, opts)` | Fetch paginated audit entries |
@@ -71,9 +71,10 @@ ProofChain.configure({
 
 ### `registerAgent(params)`
 
-Register a wallet in the ProofChain registry. The wallet must already be verified on AgentID.
+Register a wallet in the ProofChain registry. **Requires an API key** — set it via `configure` or the `PROOFCHAIN_API_KEY` env var.
 
 ```js
+ProofChain.configure({ apiKey: 'pc-abc123' });
 const reg = await ProofChain.registerAgent({
   wallet: 'FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B',
 });
@@ -147,7 +148,7 @@ const report = await ProofChain.generateReport('FKwU1...', {
   framework: 'all',  // or: 'eu-ai-act', 'soc2', 'gdpr'
 });
 
-console.log(report.reports.eu_ai_act.article_50_transparency); // "COMPLIANT — agent content labeled"
+console.log(report.reports.eu_ai_act.article_50_transparency); // "EVIDENCE PRESENT — agent identity verified on-chain"
 ```
 
 Supported frameworks:
@@ -155,6 +156,8 @@ Supported frameworks:
 - `soc2` — SOC 2 Type II Trust Services Criteria
 - `gdpr` — GDPR data protection (Art. 17 erasure, minimization)
 - `all` — every framework (default)
+
+> Reports are **evidence-based summaries**, not formal compliance certifications. Use them as a starting point for auditor workflows.
 
 ---
 

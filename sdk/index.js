@@ -132,7 +132,7 @@ class ProofChainError extends Error {
 
 /**
  * Register a new agent wallet in the ProofChain registry.
- * Requires the wallet to be verified on AgentID first.
+ * Requires an API key (set via configure or PROOFCHAIN_API_KEY).
  *
  * @param {Object}   params
  * @param {string}   params.wallet      - Public-key / wallet address (Solana).
@@ -275,7 +275,7 @@ async function getTimeline(wallet, { limit } = {}) {
  *
  * @example
  *   const report = await ProofChain.generateReport('FKwU1...', { framework: 'eu-ai-act' });
- *   console.log(report.reports.eu_ai_act.article_50_transparency); // "COMPLIANT"
+ *   console.log(report.reports.eu_ai_act.article_50_transparency); // "EVIDENCE PRESENT"
  */
 async function generateReport(wallet, { framework } = {}) {
   const params = new URLSearchParams();
