@@ -23,7 +23,7 @@ const ProofChain = require('@proofchain/sdk');
 ### Verify an agent in 3 lines
 
 ```js
-const result = await ProofChain.verifyAgent('FKwU1G1qY2RqTxB4xKNJhWpJmpb3UAEnxD7zBXRbpump');
+const result = await ProofChain.verifyAgent('FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B');
 console.log(result.verified); // true
 ```
 
@@ -31,16 +31,19 @@ console.log(result.verified); // true
 
 ## API Reference
 
-All functions return Promises. Every call hits the ProofChain REST API (`PROOFCHAIN_API_URL`, default `http://localhost:3456`).
+All functions return Promises. Every call hits the ProofChain REST API (`PROOFCHAIN_API_URL`, default `https://proofchain.us/api`).
 
 | Function | Description |
 |---|---|
 | `configure(opts)` | Set `apiUrl`, `apiKey`, `timeout` |
-| `registerAgent(params)` | Register a new agent identity (AgentID v2) |
+| `registerAgent(params)` | Register a wallet in the ProofChain registry |
 | `verifyAgent(wallet)` | Check if a wallet is a registered agent |
-| `logAction(params)` | Write an action to the HXMP audit trail |
+| `logAction(params)` | Build a tamper-evident HXMP envelope (client-side) |
 | `getAuditTrail(wallet, opts)` | Fetch paginated audit entries |
-| `generateReport(wallet, opts)` | Generate compliance report |
+| `getTimeline(wallet, opts)` | Chronological timeline of actions |
+| `generateReport(wallet, opts)` | Generate compliance report (JSON) |
+| `generateReportHtml(wallet, opts)` | Downloadable HTML report |
+| `ping()` / `health()` | Health checks |
 
 ---
 
@@ -50,8 +53,8 @@ Override defaults at runtime.
 
 ```js
 ProofChain.configure({
-  apiUrl: 'https://proofchain.example.com',
-  apiKey: 'sk-abc123',
+  apiUrl: 'https://proofchain.us/api',
+  apiKey: 'pc-abc123',
   timeout: 15_000,  // request timeout in ms
 });
 ```
@@ -60,7 +63,7 @@ ProofChain.configure({
 
 | Variable | Default |
 |---|---|
-| `PROOFCHAIN_API_URL` | `http://localhost:3456` |
+| `PROOFCHAIN_API_URL` | `https://proofchain.us/api` |
 | `PROOFCHAIN_API_KEY` | *(none)* |
 | `PROOFCHAIN_TIMEOUT` | `30000` |
 
@@ -68,15 +71,13 @@ ProofChain.configure({
 
 ### `registerAgent(params)`
 
-Register a new agent identity. Returns the on-chain transaction details.
+Register a wallet in the ProofChain registry. The wallet must already be verified on AgentID.
 
 ```js
 const reg = await ProofChain.registerAgent({
-  name: 'TraderBot',
-  description: 'Autonomous DeFi trading agent on Solana',
-  wallet: 'FKwU1G1qY2RqTxB4xKNJhWpJmpb3UAEnxD7zBXRbpump',
+  wallet: 'FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B',
 });
-// => { agentId: '...', wallet: '...', tx: '...', createdAt: '...' }
+// => { added: true, agent: { name, ... } }
 ```
 
 ---
@@ -87,17 +88,17 @@ Check whether a wallet is registered as a ProofChain agent.
 
 ```js
 const result = await ProofChain.verifyAgent('FKwU1...');
-// => { verified: true, agent: { name, description, ... }, registeredAt: '...' }
+// => { verified: true, agent: { name, description, ... }, nft: { mint, ... } }
 ```
 
 ---
 
 ### `logAction(params)`
 
-Log an action to the agent's immutable HXMP audit trail.
+Build a canonical HXMP envelope for an agent action. **ProofChain is read-only** — it does not write to chain. You sign the envelope with your agent key and submit it as an X1 memo transaction.
 
 ```js
-await ProofChain.logAction({
+const { envelope, hash } = await ProofChain.logAction({
   agent: 'FKwU1...',
   action: 'swap',
   intent: 'Rebalance portfolio after 5% market drop',
@@ -109,7 +110,7 @@ await ProofChain.logAction({
   },
   outcome: { txSig: '5K...', success: true },
 });
-// => { id: '...', tx: '...', timestamp: '2026-08-06T...' }
+// => { envelope: { p:'HXMP', t:'swap', h:'<sha256>', ... }, hash: '<sha256>', signature_hint: '...' }
 ```
 
 | Param | Required | Notes |
@@ -119,6 +120,7 @@ await ProofChain.logAction({
 | `intent` | ✅ | Why the agent did it (human-readable) |
 | `context` | — | Arbitrary key-value context (chain, amounts, addresses) |
 | `outcome` | — | What happened (tx sigs, success/failure, returned data) |
+| `prevHash` | — | Previous record hash for tamper-evident chaining |
 
 ---
 
@@ -130,9 +132,8 @@ Fetch the paginated audit trail for a wallet.
 const trail = await ProofChain.getAuditTrail('FKwU1...', {
   type: 'swap',   // filter by action type
   limit: 10,      // entries per page
-  offset: 0,      // pagination offset
 });
-// => { total: 100, entries: [{ id, action, intent, ... }, ...] }
+// => { wallet, total: 100, records: [{ signature, type, hash, ... }, ...] }
 ```
 
 ---
@@ -143,19 +144,16 @@ Generate a compliance report against standard regulatory frameworks.
 
 ```js
 const report = await ProofChain.generateReport('FKwU1...', {
-  framework: 'all',  // or: 'eu_ai_act', 'iso_42001', 'nist_ai_rmf', 'gdpr', 'soc2'
+  framework: 'all',  // or: 'eu-ai-act', 'soc2', 'gdpr'
 });
 
-console.log(report.reports.eu_ai_act.article_50_transparency); // "COMPLIANT"
-console.log(report.reports.iso_42001.a_7_accountability);      // "NON_COMPLIANT"
+console.log(report.reports.eu_ai_act.article_50_transparency); // "COMPLIANT — agent content labeled"
 ```
 
 Supported frameworks:
-- `eu_ai_act` — EU AI Act (Article 50 transparency, risk classification)
-- `iso_42001` — ISO/IEC 42001 AI management system
-- `nist_ai_rmf` — NIST AI Risk Management Framework
-- `gdpr` — GDPR data protection
-- `soc2` — SOC 2 security & availability
+- `eu-ai-act` — EU AI Act (Article 50 transparency, Article 12 record-keeping, Annex IV)
+- `soc2` — SOC 2 Type II Trust Services Criteria
+- `gdpr` — GDPR data protection (Art. 17 erasure, minimization)
 - `all` — every framework (default)
 
 ---
@@ -184,39 +182,12 @@ try {
 
 See [`examples/basic.js`](examples/basic.js) for a complete walkthrough.
 
-```js
-import ProofChain from '@proofchain/sdk';
-
-const WALLET = 'FKwU1G1qY2RqTxB4xKNJhWpJmpb3UAEnxD7zBXRbpump';
-
-// 1. Verify the agent exists
-const verified = await ProofChain.verifyAgent(WALLET);
-console.log('Verified:', verified.verified);
-
-// 2. Log an action
-await ProofChain.logAction({
-  agent: WALLET,
-  action: 'trade',
-  intent: 'Execute limit order from strategy signal',
-  context: { pair: 'SOL/USDC', side: 'buy', size: 50 },
-  outcome: { filled: true, price: 142.3 },
-});
-
-// 3. Pull the audit trail
-const trail = await ProofChain.getAuditTrail(WALLET, { limit: 5 });
-console.log(`Total entries: ${trail.total}`);
-
-// 4. Generate compliance report
-const report = await ProofChain.generateReport(WALLET, { framework: 'all' });
-console.log('EU AI Act:', report.reports.eu_ai_act.article_50_transparency);
-```
-
 ---
 
 ## Requirements
 
 - Node.js ≥ 18 (native `fetch`)
-- A running [ProofChain node](https://github.com/proofchain) (default: `http://localhost:3456`)
+- A running [ProofChain node](https://proofchain.us) (default: `https://proofchain.us/api`)
 
 ---
 
