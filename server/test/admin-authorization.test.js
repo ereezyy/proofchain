@@ -138,3 +138,39 @@ test('ordinary Pro access still works; admin credential alone does not authentic
   assert.equal(res.status, 401);
   await res.arrayBuffer();
 });
+
+test('inherited-property credentials cannot authenticate, expose key holders or mutate shared objects', async () => {
+  const targets = [Object.prototype, Object, Object.prototype.toString, Object.prototype.hasOwnProperty];
+  const snapshots = targets.map(target => Object.getOwnPropertyDescriptors(target));
+  const beforeFile = readFileSync(process.env.API_KEYS_FILE);
+  const customerData = ['free@example.invalid', 'pro@example.invalid', 'other-user@example.invalid'];
+  try {
+    for (const key of ['constructor', '__proto__', 'toString', 'hasOwnProperty', 'valueOf']) {
+      for (const query of [false, true]) {
+        const suffix = query ? '?api_key=' + encodeURIComponent(key) : '';
+        const headers = query ? {} : { 'x-api-key': key };
+        let res = await request('POST', '/api/pro/reports/schedule' + suffix, headers,
+          { wallet: 'synthetic-wallet', framework: 'soc2' });
+        assert.equal(res.status, 403);
+        await res.arrayBuffer();
+        for (const [method, path, body] of operations) {
+          res = await request(method, path + suffix, headers, body);
+          assert.equal(res.status, 401);
+          const text = await res.text();
+          assert.ok(customerData.every(email => !text.includes(email)));
+        }
+      }
+      assert.deepEqual(readFileSync(process.env.API_KEYS_FILE), beforeFile);
+      targets.forEach((target, index) => {
+        assert.deepEqual(Object.getOwnPropertyDescriptors(target), snapshots[index]);
+      });
+    }
+  } finally {
+    targets.forEach((target, index) => {
+      for (const name of Reflect.ownKeys(target)) {
+        if (!Object.hasOwn(snapshots[index], name)) delete target[name];
+      }
+      Object.defineProperties(target, snapshots[index]);
+    });
+  }
+});

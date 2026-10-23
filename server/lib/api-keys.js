@@ -58,7 +58,7 @@ export function generateApiKey(email, tier = 'free') {
  */
 export function revokeApiKey(key) {
   const keys = loadKeys();
-  if (!keys[key]) return false;
+  if (typeof key !== 'string' || !Object.hasOwn(keys, key) || !keys[key]) return false;
   delete keys[key];
   saveKeys(keys);
   return true;
@@ -92,7 +92,8 @@ export function validateApiKey(key) {
   }
 
   const keys = loadKeys();
-  const entry = keys[key];
+  // JSON objects inherit names such as constructor and __proto__; those are not keys.
+  const entry = Object.hasOwn(keys, key) ? keys[key] : null;
 
   if (!entry) {
     return { valid: false, error: 'Invalid API key' };
