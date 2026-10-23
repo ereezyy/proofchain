@@ -4,7 +4,7 @@
  * Keys map to email/account identifiers and track tier (free/pro).
  */
 
-import { randomUUID } from 'crypto';
+import { randomUUID, createHash, timingSafeEqual } from 'crypto';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -143,6 +143,28 @@ export function checkRateLimit(wallet, tier = 'free') {
 }
 
 // ── Express Middleware ─────────────────────────────────
+
+/**
+ * Global key management is a separate operator capability, never a paid tier.
+ * Header only: admin credentials must not appear in query strings or key storage.
+ */
+export function requireAdminKey(req, res, next) {
+  const expected = process.env.PROOFCHAIN_ADMIN_KEY;
+  // Fail closed until an independent, high-entropy operator secret is provisioned.
+  if (typeof expected !== 'string' || Buffer.byteLength(expected) < 32) {
+    return res.status(503).json({ error: 'API key management is disabled' });
+  }
+  const supplied = req.headers['x-admin-key'];
+  if (typeof supplied !== 'string' || !supplied) {
+    return res.status(401).json({ error: 'Admin credential required' });
+  }
+  // Fixed-size digests allow constant-time comparison for any supplied length.
+  const digest = value => createHash('sha256').update(value).digest();
+  if (!timingSafeEqual(digest(supplied), digest(expected))) {
+    return res.status(403).json({ error: 'Invalid admin credential' });
+  }
+  next();
+}
 
 /**
  * Express middleware: require API key in X-API-Key header.
