@@ -1,0 +1,4 @@
+title = "ProofChain gitleaks config"
+
+[extend]
+useDefault = true
