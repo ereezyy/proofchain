@@ -8,7 +8,7 @@ import cors from 'cors';
 import { healthCheck } from './lib/x1.js';
 import { verifyAgent } from './lib/agentid.js';
 import { getAuditTrail, getAuditTimeline } from './lib/hxmp.js';
-import { generateApiKey, revokeApiKey, listApiKeys, requireApiKey, optionalApiKey, rateLimiter } from './lib/api-keys.js';
+import { generateApiKey, revokeApiKey, listApiKeys, requireAdminKey, requireApiKey, optionalApiKey, rateLimiter } from './lib/api-keys.js';
 import { listAgents, registerAgent } from './lib/registry.js';
 import { removeAgent } from './lib/registry.js';
 
@@ -668,8 +668,8 @@ app.post('/api/pro/reports/schedule', requireApiKey, (req, res) => {
   });
 });
 
-// ── Pro API Key Management ─────────────────────────────
-app.post('/api/pro/keys/generate', requireApiKey, (req, res) => {
+// ── Operator-only API Key Management ───────────────────
+app.post('/api/pro/keys/generate', requireAdminKey, (req, res) => {
   const { email } = req.body;
   if (!email) {
     return res.status(400).json({ error: 'email is required' });
@@ -678,7 +678,7 @@ app.post('/api/pro/keys/generate', requireApiKey, (req, res) => {
   res.status(201).json(result);
 });
 
-app.delete('/api/pro/keys/revoke/:key', requireApiKey, (req, res) => {
+app.delete('/api/pro/keys/revoke/:key', requireAdminKey, (req, res) => {
   const success = revokeApiKey(req.params.key);
   if (!success) {
     return res.status(404).json({ error: 'Key not found' });
@@ -686,11 +686,15 @@ app.delete('/api/pro/keys/revoke/:key', requireApiKey, (req, res) => {
   res.json({ status: 'revoked' });
 });
 
-app.get('/api/pro/keys', requireApiKey, (_req, res) => {
+app.get('/api/pro/keys', requireAdminKey, (_req, res) => {
   res.json({ keys: listApiKeys() });
 });
 
 // ── Start ──────────────────────────────────────────────
+// Tests import the same app and bind only to loopback on an ephemeral port.
+export default app;
+
+if (process.env.NODE_ENV !== 'test') {
 app.listen(PORT, () => {
   console.log(`ProofChain API running on http://localhost:${PORT}`);
   console.log(`Endpoints:`);
@@ -713,7 +717,9 @@ app.listen(PORT, () => {
   console.log(`    GET /api/pro/audit/:wallet/timeline`);
   console.log(`    GET /api/pro/compliance/:wallet/report`);
   console.log(`    POST /api/pro/reports/schedule`);
+  console.log(`  Key management (separate X-Admin-Key required):`);
   console.log(`    POST /api/pro/keys/generate`);
   console.log(`    GET /api/pro/keys`);
   console.log(`    DELETE /api/pro/keys/revoke/:key`);
 });
+}
