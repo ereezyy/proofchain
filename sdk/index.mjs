@@ -14,7 +14,11 @@ export const {
   verifyAgent,
   logAction,
   getAuditTrail,
+  getTimeline,
   generateReport,
+  generateReportHtml,
+  ping,
+  health,
   ProofChainError,
 } = ProofChain;
 

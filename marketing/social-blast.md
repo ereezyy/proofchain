@@ -57,14 +57,4 @@ Build agents. Stay compliant.
 
 ## Posting Instructions
 
-**fb_post.py does not exist.** The only Facebook posting script in `C:\Users\Eddy\wf-deploy\` is `fb_post_video.py`, which:
-- Requires a video file (`python fb_post_video.py <video.mp4> "<description>"`)
-- Posts to the Waveforge page (PAGE_ID: `1231746766690079`), NOT a ProofChain page
-- Reads tokens from `fb_page_token.txt` / `fb_token.txt`
-
-To post ProofChain content to Facebook/Threads:
-1. **Option A:** Create a dedicated ProofChain Facebook Page, get a page access token via Graph API, and adapt `fb_post_video.py` to post text-only using the `/page-id/feed` endpoint (POST with `message` and `access_token`).
-2. **Option B:** Post manually through Meta Business Suite or the Facebook app.
-3. **Option C:** Use the Threads API directly (requires a Threads-specific access token with `threads_basic` and `threads_content_publish` permissions).
-
-For now: use the text above to post manually.
+This repo has no Facebook or Threads posting script. Post the copy above manually (Meta Business Suite, the Facebook app, or Threads).

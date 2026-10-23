@@ -1,6 +1,6 @@
 @echo off
 :: ProofChain API Management Script
-cd /d D:\projects\proofchain\server
+cd /d "%~dp0server"
 
 if "%1"=="start" (
     echo Starting ProofChain API...
