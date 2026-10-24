@@ -77,10 +77,13 @@ function saveKeys(keys) {
     descriptor = undefined;
     // Readers see either the previous complete JSON document or the new one.
     renameSync(temporary, KEYS_FILE);
-  } finally {
-    if (descriptor !== undefined) closeSync(descriptor);
-    try { unlinkSync(temporary); }
-    catch (error) { if (error.code !== 'ENOENT') throw error; }
+  } catch (error) {
+    // Attempt both cleanup steps even if one fails; preserve the write error.
+    if (descriptor !== undefined) {
+      try { closeSync(descriptor); } catch { /* best effort */ }
+    }
+    try { unlinkSync(temporary); } catch { /* best effort */ }
+    throw error;
   }
 }
 

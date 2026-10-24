@@ -6,6 +6,8 @@ const waitBuffer = new Int32Array(new SharedArrayBuffer(4));
 const originalRead = fs.readFileSync;
 const originalOpen = fs.openSync;
 const originalRename = fs.renameSync;
+const originalClose = fs.closeSync;
+const temporaryDescriptors = new Set();
 let paused = false;
 let reportedContention = false;
 
@@ -50,7 +52,11 @@ fs.renameSync = function (source, destination) {
 
 fs.openSync = function (path, ...args) {
   try {
-    return originalOpen.call(this, path, ...args);
+    const descriptor = originalOpen.call(this, path, ...args);
+    if (typeof path === 'string' && path.startsWith(process.env.API_KEYS_FILE + '.') && path.endsWith('.tmp')) {
+      temporaryDescriptors.add(descriptor);
+    }
+    return descriptor;
   } catch (error) {
     if (path === process.env.API_KEYS_FILE + '.lock' && error.code === 'EEXIST' && !reportedContention) {
       reportedContention = true;
@@ -58,6 +64,15 @@ fs.openSync = function (path, ...args) {
     }
     throw error;
   }
+};
+
+fs.closeSync = function (descriptor) {
+  if (configuration.failClose && temporaryDescriptors.has(descriptor)) {
+    throw Object.assign(new Error('Injected close failure'), { code: 'EIO' });
+  }
+  const result = originalClose.call(this, descriptor);
+  temporaryDescriptors.delete(descriptor);
+  return result;
 };
 
 syncBuiltinESMExports();

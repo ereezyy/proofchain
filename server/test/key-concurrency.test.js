@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { fork } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -156,20 +156,21 @@ test('a validation started after revocation is denied across processes', { timeo
   );
 });
 
-test('read and commit failures preserve the last complete store and release the lock', { timeout: 25000 }, async () => {
+test('read, close and commit failures preserve storage, clean temporary files and release the lock', { timeout: 25000 }, async () => {
   const directory = mkdtempSync(join(tmpdir(), 'proofchain-storage-failure-'));
   const file = join(directory, 'keys.json');
   const key = 'pc_' + randomBytes(16).toString('hex');
   const original = JSON.stringify({ [key]: initialEntry() });
   writeFileSync(file, original);
   try {
-    for (const failure of ['failRead', 'failCommit']) {
+    for (const failure of ['failRead', 'failCommit', 'failClose']) {
       const process = worker(file, { operation: 'revokeApiKey', arguments: [key], [failure]: true });
       const result = await process.waitFor(['failed']);
       assert.equal(result.code, 'API_KEY_STORE_UNAVAILABLE');
       assert.equal((await process.exited).code, 1);
       assert.equal(readFileSync(file, 'utf8'), original);
       assert.equal(existsSync(file + '.lock'), false);
+      assert.equal(readdirSync(directory).filter(name => name.endsWith('.tmp')).length, 0);
     }
     const process = worker(file, { operation: 'validateApiKey', arguments: [key] });
     assert.equal((await process.waitFor(['done'])).result.valid, true);
