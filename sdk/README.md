@@ -8,17 +8,22 @@
 
 ## Quick Start
 
+The public npm package `@proofchain/sdk` is a different project. From a checkout of this repo:
+
 ```bash
-npm install @proofchain/sdk
+cd sdk
+node examples/basic.js
 ```
 
 ```js
 // ESM
-import ProofChain from '@proofchain/sdk';
+import ProofChain from './index.mjs';
 
 // CJS
-const ProofChain = require('@proofchain/sdk');
+const ProofChain = require('./index.js');
 ```
+
+Later snippets import `@proofchain/sdk`. That name resolves to this folder only when Node is loading this package (for example `npm link` in `sdk/`), not the unrelated package published under that name.
 
 ### Verify an agent in 3 lines
 

@@ -72,12 +72,12 @@ async function getOnChainEvidence(wallet) {
 
 ### Method 2: Embedded Dashboard
 
-Embed the ProofChain audit trail viewer directly:
+The API process does not serve dashboard HTML. Embed the static dashboard:
 
 ```html
 <!-- In your GRC platform's evidence page -->
 <iframe
-  src="http://localhost:3456/dashboard/index.html"
+  src="https://proofchain.us/dashboard/"
   width="100%"
   height="600"
   style="border: 1px solid #262220; border-radius: 4px;"
@@ -85,19 +85,9 @@ Embed the ProofChain audit trail viewer directly:
 ></iframe>
 ```
 
-### Method 3: Webhook Integration
+### Method 3: Poll for new records
 
-ProofChain can push audit events to your platform:
-
-```javascript
-// Configure in ProofChain
-POST /api/webhooks/configure
-{
-  "endpoint": "https://your-platform.com/api/proofchain/events",
-  "events": ["agent.action", "soul.snapshot", "compliance.report"],
-  "secret": "your-webhook-secret"
-}
-```
+There is no webhook configuration endpoint. Poll `GET /api/audit/:wallet` or `GET /api/audit/:wallet/timeline`.
 
 ## Compliance Framework Mapping
 
@@ -135,7 +125,7 @@ Revenue share: 30% to ProofChain, 70% to partner.
 ## Getting Started
 
 1. **Request API access:** `dpo@proofchain.dev`
-2. **Integration test environment:** `http://localhost:3456` (currently private beta)
+2. **API:** `https://proofchain.us/api` (self-host default `http://localhost:3456`)
 3. **Documentation:** `/api/health`, `/api/agent/:wallet`, `/api/audit/:wallet`, `/api/compliance/:wallet/report`
 4. **Support:** Same channel as sales inquiries
 

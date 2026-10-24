@@ -21,7 +21,7 @@ Together, these form an **immutable audit trail** that can generate compliance r
 ```
 ┌─────────────────────────────────────────────────────┐
 │                  ProofChain API                      │
-│            (Express + PM2 — port 3458)               │
+│            (Express + PM2 — port 3456)               │
 ├───────────────┬──────────────┬──────────────────────┤
 │   AgentID v2  │     HXMP     │       X1 RPC         │
 │   Identity    │  Audit Trail │   Chain Queries      │
@@ -45,7 +45,7 @@ Together, these form an **immutable audit trail** that can generate compliance r
 ```bash
 cd server
 npm install
-npm start        # Runs on http://localhost:3458
+npm start        # Runs on http://localhost:3456
 # or
 npm run dev      # With file watcher
 ```
@@ -53,10 +53,10 @@ npm run dev      # With file watcher
 Alternatively, use the included batch script:
 
 ```bash
-proofchain start    # Start the API
-proofchain status   # Health check
-proofchain logs     # View logs
-proofchain stop     # Stop the API
+proofchain.bat start     # Start the API
+proofchain.bat status    # Health check
+proofchain.bat logs      # View logs
+proofchain.bat stop      # Stop the API
 ```
 
 ## API Endpoints
@@ -124,22 +124,13 @@ Reports are available as JSON for programmatic consumption or as styled HTML for
 
 ## Production Deployment
 
-Deployed on a managed VPS with PM2 + nginx reverse proxy:
-
-```bash
-# PM2 ecosystem config at /opt/proofchain-api/ecosystem.config.cjs
-# Nginx proxies /api/ → [::1]:3458 with HTTPS (Let's Encrypt)
-# Dashboard served from /var/www/proofchain.us/dashboard/
-```
+`npm start` runs `node server.js`, which listens on `PORT` (default **3456**). Production usually supervises that process with PM2 and reverse-proxies `/api/` to it. Pages under `dashboard/` are static files; the API process does not serve them.
 
 ## SDK
 
 ### Python
 
-```bash
-pip install proofchain  # coming soon
-# or copy sdk/proofchain.py into your project
-```
+Copy `sdk/proofchain.py` into your project, or run it from this repo. `pip install proofchain` is a different project.
 
 ```python
 from proofchain import ping, agent, audit, compliance
@@ -161,31 +152,48 @@ report = compliance("FKwU1im...", framework="eu-ai-act")
 Or use the CLI:
 
 ```bash
-python proofchain.py ping
-python proofchain.py agent FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B
-python proofchain.py compliance FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B
+python sdk/proofchain.py ping
+python sdk/proofchain.py agent FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B
+python sdk/proofchain.py compliance FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B
 ```
 
 ## Project Structure
 
 ```
 proofchain/
-├── Landing Page.html        # Public landing page
+├── Landing Page.html
+├── accountability.html
+├── agentid.html
+├── audit-trail.html
+├── eu-ai-act.html
+├── identity.html
+├── pricing.html
 ├── proofchain.bat           # Windows batch management script
 ├── README.md
 ├── dashboard/
 │   ├── index.html           # Dashboard UI (auto-detects localhost vs prod)
-│   └── register.html        # Agent registration page
+│   ├── register.html        # Agent registration page
+│   └── registry.html
+├── docs/
 ├── server/
-│   ├── server.js            # Express API server
-│   ├── package.json         # ESM, 4 deps
-│   ├── ecosystem.config.cjs # PM2 production config (PORT=3458)
+│   ├── server.js            # Express API (PORT, default 3456)
+│   ├── package.json
+│   ├── registry.json
+│   ├── ADMIN.md
+│   ├── test/
 │   └── lib/
 │       ├── agentid.js       # AgentID v2 identity verification
+│       ├── api-keys.js
 │       ├── hxmp.js          # HXMP audit trail parser
+│       ├── registry.js
 │       └── x1.js            # X1 RPC read-only wrapper
 ├── sdk/
-│   └── examples/            # Coming soon
+│   ├── index.js
+│   ├── index.mjs
+│   ├── proofchain.py
+│   ├── README.md
+│   └── examples/
+│       └── basic.js
 └── assets/
     └── logo.png
 ```

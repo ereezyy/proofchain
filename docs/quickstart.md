@@ -2,40 +2,43 @@
 
 ## 30-Second Install
 
+`proofchain-sdk` is not published. `@proofchain/sdk` on npm is a different project. From a checkout of this repo:
+
 ```bash
-npm install proofchain-sdk
+node sdk/examples/basic.js
 ```
 
 ## Verify Your First Agent
 
 ```js
-import ProofChain from 'proofchain-sdk';
+import ProofChain from './sdk/index.mjs';
 
-const pc = new ProofChain({ apiUrl: 'http://localhost:3456' });
+// Server routes are under /api. Default listen port is 3456.
+ProofChain.configure({ apiUrl: 'http://localhost:3456/api' });
 
 // Verify an agent identity on X1
-const agent = await pc.verifyAgent('FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B');
+const agent = await ProofChain.verifyAgent('FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B');
 // { verified: true, agent: { name: 'Aster' }, nft: { mint: '6LZa...', soulbound: true } }
 ```
 
 ## Get an Audit Trail
 
 ```js
-const audit = await pc.getAuditTrail('FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B', { limit: 10 });
+const audit = await ProofChain.getAuditTrail('FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B', { limit: 10 });
 // { total: 100, records: [{ type: 'soul.latest', seq: 21, hash: 'sha256:...' }, ...] }
 ```
 
 ## Generate a Compliance Report
 
 ```js
-const report = await pc.generateReport('FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B', { framework: 'all' });
+const report = await ProofChain.generateReport('FKwU1im523MSGnuJG6YLHEZu4rUGj3xqxHJ6ipQMBG9B', { framework: 'all' });
 // { reports: { eu_ai_act: { article_50_transparency: 'COMPLIANT' }, soc2: {...}, gdpr: {...} } }
 ```
 
 ## Self-Host
 
 ```bash
-git clone https://github.com/EddyWoodss/proofchain
+git clone https://github.com/ereezyy/proofchain
 cd proofchain/server
 npm install
 node server.js
