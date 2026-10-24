@@ -690,6 +690,14 @@ app.get('/api/pro/keys', requireAdminKey, (_req, res) => {
   res.json({ keys: listApiKeys() });
 });
 
+// Storage failures must deny authentication and management without exposing paths.
+app.use((error, _req, res, next) => {
+  if (error.code === 'API_KEY_STORE_UNAVAILABLE') {
+    return res.status(503).json({ error: 'API key storage unavailable' });
+  }
+  next(error);
+});
+
 // ── Start ──────────────────────────────────────────────
 // Tests import the same app and bind only to loopback on an ephemeral port.
 export default app;

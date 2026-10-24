@@ -5,26 +5,83 @@
  */
 
 import { randomUUID, createHash, timingSafeEqual } from 'crypto';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
+import { closeSync, fsyncSync, lstatSync, openSync, readFileSync, realpathSync, renameSync, unlinkSync, writeFileSync } from 'fs';
+import { basename, join, dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
+import { performance } from 'node:perf_hooks';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const KEYS_FILE = process.env.API_KEYS_FILE || join(__dirname, '..', 'api-keys.json');
+const KEYS_FILE = resolve(process.env.API_KEYS_FILE || join(__dirname, '..', 'api-keys.json'));
+const LOCK_TIMEOUT_MS = 5000;
+const lockWait = new Int32Array(new SharedArrayBuffer(4));
 
 // ── Load / Save ────────────────────────────────────────
 
-function loadKeys() {
+function withKeysLock(operation) {
   try {
-    if (!existsSync(KEYS_FILE)) return {};
-    return JSON.parse(readFileSync(KEYS_FILE, 'utf-8'));
+    // Canonicalize the parent so aliases to the same directory share a lock.
+    const lockFile = join(realpathSync(dirname(KEYS_FILE)), basename(KEYS_FILE) + '.lock');
+    const deadline = performance.now() + LOCK_TIMEOUT_MS;
+    let descriptor;
+    while (descriptor === undefined) {
+      try {
+        descriptor = openSync(lockFile, 'wx', 0o600);
+      } catch (error) {
+        if (error.code !== 'EEXIST' || performance.now() >= deadline) throw error;
+        Atomics.wait(lockWait, 0, 0, 10);
+      }
+    }
+    try {
+      // The lock must cover the initial read as well as the final replacement.
+      return operation();
+    } finally {
+      try { closeSync(descriptor); }
+      finally { unlinkSync(lockFile); }
+    }
   } catch {
-    return {};
+    // Never turn a corrupt/unreadable store or a busy/orphaned lock into {}.
+    const error = new Error('API key storage unavailable');
+    error.code = 'API_KEY_STORE_UNAVAILABLE';
+    throw error;
   }
 }
 
+function loadKeys() {
+  let metadata;
+  try {
+    metadata = lstatSync(KEYS_FILE);
+  } catch (error) {
+    if (error.code === 'ENOENT') return {};
+    throw error;
+  }
+  // Replacing symlinks/hard links would split aliases into independent stores.
+  if (!metadata.isFile() || metadata.isSymbolicLink() || metadata.nlink !== 1) {
+    throw new Error('Key storage must be a regular file');
+  }
+  const keys = JSON.parse(readFileSync(KEYS_FILE, 'utf-8'));
+  if (!keys || typeof keys !== 'object' || Array.isArray(keys)
+      || Object.values(keys).some(entry => !entry || typeof entry !== 'object' || Array.isArray(entry))) {
+    throw new Error('Invalid key storage');
+  }
+  return keys;
+}
+
 function saveKeys(keys) {
-  writeFileSync(KEYS_FILE, JSON.stringify(keys, null, 2), 'utf-8');
+  const temporary = `${KEYS_FILE}.${process.pid}.${randomUUID()}.tmp`;
+  let descriptor;
+  try {
+    descriptor = openSync(temporary, 'wx', 0o600);
+    writeFileSync(descriptor, JSON.stringify(keys, null, 2), 'utf-8');
+    fsyncSync(descriptor);
+    closeSync(descriptor);
+    descriptor = undefined;
+    // Readers see either the previous complete JSON document or the new one.
+    renameSync(temporary, KEYS_FILE);
+  } finally {
+    if (descriptor !== undefined) closeSync(descriptor);
+    try { unlinkSync(temporary); }
+    catch (error) { if (error.code !== 'ENOENT') throw error; }
+  }
 }
 
 // ── Key Generation ─────────────────────────────────────
@@ -36,19 +93,21 @@ function saveKeys(keys) {
  * @returns {{ key: string, created: string }}
  */
 export function generateApiKey(email, tier = 'free') {
-  const keys = loadKeys();
-  const key = `pc_${randomUUID().replace(/-/g, '')}`;
+  return withKeysLock(() => {
+    const keys = loadKeys();
+    const key = `pc_${randomUUID().replace(/-/g, '')}`;
 
-  keys[key] = {
-    email,
-    tier,
-    created: new Date().toISOString(),
-    lastUsed: null,
-    requestCount: 0
-  };
+    keys[key] = {
+      email,
+      tier,
+      created: new Date().toISOString(),
+      lastUsed: null,
+      requestCount: 0
+    };
 
-  saveKeys(keys);
-  return { key, tier, created: keys[key].created };
+    saveKeys(keys);
+    return { key, tier, created: keys[key].created };
+  });
 }
 
 /**
@@ -57,26 +116,31 @@ export function generateApiKey(email, tier = 'free') {
  * @returns {boolean} true if key existed and was removed
  */
 export function revokeApiKey(key) {
-  const keys = loadKeys();
-  if (typeof key !== 'string' || !Object.hasOwn(keys, key) || !keys[key]) return false;
-  delete keys[key];
-  saveKeys(keys);
-  return true;
+  if (typeof key !== 'string') return false;
+  return withKeysLock(() => {
+    const keys = loadKeys();
+    if (!Object.hasOwn(keys, key) || !keys[key]) return false;
+    delete keys[key];
+    saveKeys(keys);
+    return true;
+  });
 }
 
 /**
  * Get all keys (admin). Returns sanitized list without full keys.
  */
 export function listApiKeys() {
-  const keys = loadKeys();
-  return Object.entries(keys).map(([key, data]) => ({
-    keyPrefix: key.slice(0, 10) + '...',
-    email: data.email,
-    tier: data.tier,
-    created: data.created,
-    lastUsed: data.lastUsed,
-    requestCount: data.requestCount
-  }));
+  return withKeysLock(() => {
+    const keys = loadKeys();
+    return Object.entries(keys).map(([key, data]) => ({
+      keyPrefix: key.slice(0, 10) + '...',
+      email: data.email,
+      tier: data.tier,
+      created: data.created,
+      lastUsed: data.lastUsed,
+      requestCount: data.requestCount
+    }));
+  });
 }
 
 // ── Validation ─────────────────────────────────────────
@@ -91,24 +155,26 @@ export function validateApiKey(key) {
     return { valid: false, error: 'Missing API key' };
   }
 
-  const keys = loadKeys();
-  // JSON objects inherit names such as constructor and __proto__; those are not keys.
-  const entry = Object.hasOwn(keys, key) ? keys[key] : null;
+  return withKeysLock(() => {
+    const keys = loadKeys();
+    // JSON objects inherit names such as constructor and __proto__; those are not keys.
+    const entry = Object.hasOwn(keys, key) ? keys[key] : null;
 
-  if (!entry) {
-    return { valid: false, error: 'Invalid API key' };
-  }
+    if (!entry) {
+      return { valid: false, error: 'Invalid API key' };
+    }
 
-  // Update usage
-  entry.lastUsed = new Date().toISOString();
-  entry.requestCount = (entry.requestCount || 0) + 1;
-  saveKeys(keys);
+    // Update usage while holding the same lock used by generation and revocation.
+    entry.lastUsed = new Date().toISOString();
+    entry.requestCount = (entry.requestCount || 0) + 1;
+    saveKeys(keys);
 
-  return {
-    valid: true,
-    email: entry.email,
-    tier: entry.tier
-  };
+    return {
+      valid: true,
+      email: entry.email,
+      tier: entry.tier
+    };
+  });
 }
 
 // ── Rate Limiting ──────────────────────────────────────

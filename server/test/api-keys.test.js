@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -47,6 +47,25 @@ test('missing, invalid and revoked keys are rejected', () => {
   assert.equal(api.revokeApiKey(key), true);
   assert.equal(api.validateApiKey(key).valid, false);
   assert.equal(api.revokeApiKey(key), false);
+});
+
+test('malformed or invalid credential files fail closed without replacing existing data', () => {
+  const original = readFileSync(process.env.API_KEYS_FILE);
+  try {
+    for (const corrupt of ['{invalid JSON', 'null', '[]', '{"invalid":null}', '{"invalid":42}']) {
+      writeFileSync(process.env.API_KEYS_FILE, corrupt);
+      for (const operation of [
+        () => api.generateApiKey('synthetic@example.invalid'),
+        () => api.revokeApiKey('synthetic-key'),
+        () => api.validateApiKey('synthetic-key'),
+        () => api.listApiKeys()
+      ]) {
+        assert.throws(operation, { code: 'API_KEY_STORE_UNAVAILABLE', message: 'API key storage unavailable' });
+        assert.equal(readFileSync(process.env.API_KEYS_FILE, 'utf8'), corrupt);
+        assert.equal(existsSync(process.env.API_KEYS_FILE + '.lock'), false);
+      }
+    }
+  } finally { writeFileSync(process.env.API_KEYS_FILE, original); }
 });
 
 function response() {

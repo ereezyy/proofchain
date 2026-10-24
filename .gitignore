@@ -5,3 +5,7 @@ id.json
 hxmp-encryption.key*
 _push.py
 _patch.py
+# Runtime customer credentials, locks, and private atomic-write files.
+api-keys.json
+api-keys.json.lock
+api-keys.json.*.tmp

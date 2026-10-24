@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { randomBytes } from 'node:crypto';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { once } from 'node:events';
@@ -45,6 +45,28 @@ async function request(method, path, headers = {}, body) {
   });
 }
 const storedKeys = () => Object.keys(JSON.parse(readFileSync(process.env.API_KEYS_FILE, 'utf8'))).sort();
+
+test('corrupt credential storage denies authenticated and admin HTTP operations without overwriting data', async () => {
+  const original = readFileSync(process.env.API_KEYS_FILE);
+  const corrupt = '{invalid JSON';
+  try {
+    writeFileSync(process.env.API_KEYS_FILE, corrupt);
+    for (const [method, path, body] of operations) {
+      const res = await request(method, path, { 'x-admin-key': adminSecret }, body);
+      assert.equal(res.status, 503);
+      assert.deepEqual(await res.json(), { error: 'API key storage unavailable' });
+      assert.equal(readFileSync(process.env.API_KEYS_FILE, 'utf8'), corrupt);
+    }
+    const res = await request('POST', '/api/pro/reports/schedule', { 'x-api-key': pro.key }, {
+      wallet: 'synthetic-wallet', framework: 'eu-ai-act'
+    });
+    assert.equal(res.status, 503);
+    assert.deepEqual(await res.json(), { error: 'API key storage unavailable' });
+    assert.equal(readFileSync(process.env.API_KEYS_FILE, 'utf8'), corrupt);
+  } finally {
+    writeFileSync(process.env.API_KEYS_FILE, original);
+  }
+});
 
 test('anonymous, invalid, free and Pro API credentials cannot list/create/revoke keys', async () => {
   const original = storedKeys();
