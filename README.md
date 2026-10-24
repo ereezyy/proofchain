@@ -36,7 +36,7 @@ Together, these form an **immutable audit trail** that can generate compliance r
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 22+ (supported LTS runtime; Node.js 18 and 20 are not supported)
 - npm
 - PM2 (production)
 

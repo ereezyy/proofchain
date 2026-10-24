@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { randomBytes } from 'node:crypto';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { once } from 'node:events';
@@ -45,6 +45,28 @@ async function request(method, path, headers = {}, body) {
   });
 }
 const storedKeys = () => Object.keys(JSON.parse(readFileSync(process.env.API_KEYS_FILE, 'utf8'))).sort();
+
+test('corrupt credential storage denies authenticated and admin HTTP operations without overwriting data', async () => {
+  const original = readFileSync(process.env.API_KEYS_FILE);
+  const corrupt = '{invalid JSON';
+  try {
+    writeFileSync(process.env.API_KEYS_FILE, corrupt);
+    for (const [method, path, body] of operations) {
+      const res = await request(method, path, { 'x-admin-key': adminSecret }, body);
+      assert.equal(res.status, 503);
+      assert.deepEqual(await res.json(), { error: 'API key storage unavailable' });
+      assert.equal(readFileSync(process.env.API_KEYS_FILE, 'utf8'), corrupt);
+    }
+    const res = await request('POST', '/api/pro/reports/schedule', { 'x-api-key': pro.key }, {
+      wallet: 'synthetic-wallet', framework: 'eu-ai-act'
+    });
+    assert.equal(res.status, 503);
+    assert.deepEqual(await res.json(), { error: 'API key storage unavailable' });
+    assert.equal(readFileSync(process.env.API_KEYS_FILE, 'utf8'), corrupt);
+  } finally {
+    writeFileSync(process.env.API_KEYS_FILE, original);
+  }
+});
 
 test('anonymous, invalid, free and Pro API credentials cannot list/create/revoke keys', async () => {
   const original = storedKeys();
@@ -137,4 +159,40 @@ test('ordinary Pro access still works; admin credential alone does not authentic
   res = await request('POST', '/api/pro/reports/schedule', { 'x-admin-key': adminSecret }, body);
   assert.equal(res.status, 401);
   await res.arrayBuffer();
+});
+
+test('inherited-property credentials cannot authenticate, expose key holders or mutate shared objects', async () => {
+  const targets = [Object.prototype, Object, Object.prototype.toString, Object.prototype.hasOwnProperty];
+  const snapshots = targets.map(target => Object.getOwnPropertyDescriptors(target));
+  const beforeFile = readFileSync(process.env.API_KEYS_FILE);
+  const customerData = ['free@example.invalid', 'pro@example.invalid', 'other-user@example.invalid'];
+  try {
+    for (const key of ['constructor', '__proto__', 'toString', 'hasOwnProperty', 'valueOf']) {
+      for (const query of [false, true]) {
+        const suffix = query ? '?api_key=' + encodeURIComponent(key) : '';
+        const headers = query ? {} : { 'x-api-key': key };
+        let res = await request('POST', '/api/pro/reports/schedule' + suffix, headers,
+          { wallet: 'synthetic-wallet', framework: 'soc2' });
+        assert.equal(res.status, 403);
+        await res.arrayBuffer();
+        for (const [method, path, body] of operations) {
+          res = await request(method, path + suffix, headers, body);
+          assert.equal(res.status, 401);
+          const text = await res.text();
+          assert.ok(customerData.every(email => !text.includes(email)));
+        }
+      }
+      assert.deepEqual(readFileSync(process.env.API_KEYS_FILE), beforeFile);
+      targets.forEach((target, index) => {
+        assert.deepEqual(Object.getOwnPropertyDescriptors(target), snapshots[index]);
+      });
+    }
+  } finally {
+    targets.forEach((target, index) => {
+      for (const name of Reflect.ownKeys(target)) {
+        if (!Object.hasOwn(snapshots[index], name)) delete target[name];
+      }
+      Object.defineProperties(target, snapshots[index]);
+    });
+  }
 });
