@@ -335,25 +335,71 @@ export function optionalApiKey(req, _res, next) {
   next();
 }
 
+// Per-IP buckets for requests that are not keyed by a wallet.
+// Express req.ip is the client only after trust proxy is applied; this map
+// does not read X-Forwarded-For or X-Real-IP itself.
+const issueHits = new Map(); // ip -> { count, windowStart }
+const ISSUE_HITS_DEFAULT = 4096;
+const ISSUE_HITS_CEILING = 1_000_000;
+
+function boundedPositive(raw, fallback, ceiling) {
+  if (raw == null || raw === '') return fallback;
+  const n = Number(raw);
+  if (!Number.isSafeInteger(n) || n < 1 || n > ceiling) return fallback;
+  return n;
+}
+
+/** Current cap for the IP hit map. Invalid ISSUE_HITS_MAX values use the default. */
+export function issueHitsLimit() {
+  return boundedPositive(process.env.ISSUE_HITS_MAX, ISSUE_HITS_DEFAULT, ISSUE_HITS_CEILING);
+}
+
+function pruneIssueHits(now) {
+  for (const [ip, entry] of issueHits) {
+    if (!entry || now - entry.windowStart > RATE_WINDOW_MS) issueHits.delete(ip);
+  }
+}
+
 /**
- * Apply rate limiting per wallet.
- * A wallet route param is checked against the base58 address shape before
- * it is stored. Requests with no wallet param keep the previous IP fallback
- * (`req.ip`, else `anonymous`) and do not read forwarding headers.
+ * Client address for rate limiting.
+ * Prefer Express `req.ip` (socket address, or the forwarded client when
+ * `trust proxy` is enabled). Otherwise use the socket. Never the raw headers.
  */
-export function rateLimiter(req, res, next) {
-  const param = req.params.wallet;
-  const tier = req.apiKey?.tier || 'free';
-  let limit;
-  if (typeof param === 'string' && param.length > 0) {
-    limit = checkRateLimit(param, tier);
-    if (limit.invalid) {
-      return res.status(400).json({ error: 'Invalid wallet address.' });
+export function clientAddress(req) {
+  if (req && typeof req.ip === 'string' && req.ip.length > 0) return req.ip;
+  const remote = req && req.socket && req.socket.remoteAddress;
+  if (typeof remote === 'string' && remote.length > 0) return remote;
+  return 'anonymous';
+}
+
+function checkIssueLimit(ip, tier) {
+  const now = Date.now();
+  pruneIssueHits(now);
+  if (tier === 'pro') return { allowed: true, remaining: Infinity };
+
+  const entry = issueHits.get(ip);
+  if (!entry) {
+    if (issueHits.size >= issueHitsLimit()) {
+      return { allowed: false, remaining: 0, resetIn: RATE_WINDOW_MS, capacity: true };
     }
-  } else {
-    limit = consumeRate(param || req.ip || 'anonymous', tier);
+    issueHits.set(ip, { count: 1, windowStart: now });
+    return { allowed: true, remaining: FREE_LIMIT - 1 };
   }
 
+  entry.count += 1;
+  const remaining = Math.max(0, FREE_LIMIT - entry.count);
+  if (entry.count > FREE_LIMIT) {
+    return { allowed: false, remaining: 0, resetIn: RATE_WINDOW_MS - (now - entry.windowStart) };
+  }
+  return { allowed: true, remaining };
+}
+
+/** Test hook. Not an HTTP endpoint. */
+export function clearIssueHitsForTests() {
+  issueHits.clear();
+}
+
+function applyLimit(res, tier, limit, next) {
   res.set('X-RateLimit-Limit', tier === 'pro' ? 'unlimited' : String(FREE_LIMIT));
   res.set('X-RateLimit-Remaining', String(limit.remaining));
 
@@ -369,4 +415,21 @@ export function rateLimiter(req, res, next) {
   }
 
   next();
+}
+
+/**
+ * A wallet route param must be a base58 address before it touches the wallet
+ * store. Requests without one use the bounded per-IP map and clientAddress.
+ */
+export function rateLimiter(req, res, next) {
+  const wallet = req.params.wallet;
+  const tier = req.apiKey?.tier || 'free';
+  if (typeof wallet === 'string' && wallet.length > 0) {
+    const limit = checkRateLimit(wallet, tier);
+    if (limit.invalid) {
+      return res.status(400).json({ error: 'Invalid wallet address.' });
+    }
+    return applyLimit(res, tier, limit, next);
+  }
+  return applyLimit(res, tier, checkIssueLimit(clientAddress(req), tier), next);
 }

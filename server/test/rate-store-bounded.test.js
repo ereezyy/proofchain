@@ -178,25 +178,17 @@ describe('bounded wallet rate store', { concurrency: false }, () => {
     }
   });
 
-  test('forwarding headers still do not create wallet buckets when no wallet is present', () => {
-    for (let i = 0; i < 50; i++) {
-      const left = hit(undefined, {
-        ip: undefined,
+  test('forwarding headers do not mint buckets for one socket when no wallet is present', () => {
+    for (let i = 0; i < 100; i++) {
+      const allowed = hit(undefined, {
         headers: { 'x-forwarded-for': `203.0.113.${i}`, 'x-real-ip': `198.51.100.${i}` },
         socket: { remoteAddress: '192.0.2.1' }
       });
-      assert.equal(left.next, 1, `left ${i}`);
-    }
-    for (let i = 0; i < 50; i++) {
-      const right = hit(undefined, {
-        headers: { 'x-forwarded-for': `203.0.113.${i + 80}`, 'x-real-ip': `198.51.100.${i}` },
-        socket: { remoteAddress: '192.0.2.2' }
-      });
-      assert.equal(right.next, 1, `right ${i}`);
+      assert.equal(allowed.next, 1, `request ${i}`);
     }
     const blocked = hit(undefined, {
       headers: { 'x-forwarded-for': '203.0.113.250', 'x-real-ip': '198.51.100.250' },
-      socket: { remoteAddress: '192.0.2.3' }
+      socket: { remoteAddress: '192.0.2.1' }
     });
     assert.equal(blocked.next, 0);
     assert.equal(blocked.res.statusCode, 429);

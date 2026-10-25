@@ -126,6 +126,8 @@ Reports are available as JSON for programmatic consumption or as styled HTML for
 
 `npm start` runs `node server.js`, which listens on `PORT` (default **3456**). Production usually supervises that process with PM2 and reverse-proxies `/api/` to it. Pages under `dashboard/` are static files; the API process does not serve them.
 
+`TRUST_PROXY` controls whether Express trusts `X-Forwarded-For` when it sets `req.ip`. Leave it unset or `false` so the client address is the socket peer. Set `loopback` when a reverse proxy on this machine overwrites `X-Forwarded-For`, or set a hop count (`1` for one proxy) or a trusted subnet. `true` trusts every hop, so a client can pick the address. The rate limiter does not read `X-Forwarded-For` or `X-Real-IP` itself. Wallet routes are still counted per wallet address.
+
 ## SDK
 
 ### Python

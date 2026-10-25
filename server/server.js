@@ -15,6 +15,31 @@ import { removeAgent } from './lib/registry.js';
 const app = express();
 const PORT = process.env.PORT || 3456;
 
+/**
+ * How Express derives req.ip.
+ * Unset, false, 0, or off: ignore X-Forwarded-For (direct client socket).
+ * true or on: trust every hop (a client can choose the address).
+ * A positive integer: trust that many proxy hops.
+ * loopback, an IP/CIDR, or a comma-separated list: trust only those proxies.
+ */
+export function resolveTrustProxy(value = process.env.TRUST_PROXY) {
+  if (typeof value === 'number') return Number.isSafeInteger(value) && value > 0 ? value : false;
+  if (typeof value === 'boolean') return value;
+  if (value == null) return false;
+  const raw = String(value).trim();
+  const word = raw.toLowerCase();
+  if (word === '' || word === 'false' || word === '0' || word === 'off') return false;
+  if (word === 'true' || word === 'on') return true;
+  if (word === 'loopback') return 'loopback';
+  if (/^[0-9]+$/.test(word)) {
+    const hops = Number(word);
+    return hops > 0 ? hops : false;
+  }
+  return raw;
+}
+
+app.set('trust proxy', resolveTrustProxy());
+
 app.use(cors());
 app.use(express.json());
 app.use(optionalApiKey); // Attach API key metadata when present, but don't reject unauthed requests
