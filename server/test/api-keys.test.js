@@ -3,7 +3,6 @@ import { after, test } from 'node:test';
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { randomUUID } from 'node:crypto';
 
 // Set storage before importing: tests must never touch real API keys.
 const directory = mkdtempSync(join(tmpdir(), 'proofchain-test-'));
@@ -105,7 +104,7 @@ test('optional authentication continues anonymously or attaches valid metadata',
 });
 
 test('free quota permits 100 requests, rejects 101, and isolates wallets', () => {
-  const wallet = randomUUID();
+  const wallet = '11111111111111111111111111111111';
   for (let i = 1; i <= 100; i++) {
     assert.deepEqual(api.checkRateLimit(wallet), { allowed: true, remaining: 100 - i });
   }
@@ -113,12 +112,12 @@ test('free quota permits 100 requests, rejects 101, and isolates wallets', () =>
   assert.equal(blocked.allowed, false);
   assert.equal(blocked.remaining, 0);
   assert.ok(blocked.resetIn > 0 && blocked.resetIn <= 86400000);
-  assert.deepEqual(api.checkRateLimit(randomUUID()), { allowed: true, remaining: 99 });
+  assert.deepEqual(api.checkRateLimit('11111111111111111111111111111112'), { allowed: true, remaining: 99 });
   assert.deepEqual(api.checkRateLimit(wallet, 'pro'), { allowed: true, remaining: Infinity });
 });
 
 test('rate limiter returns 429 with retry and quota headers after exhaustion', () => {
-  const req = { params: { wallet: randomUUID() } };
+  const req = { params: { wallet: '11111111111111111111111111111113' } };
   for (let i = 0; i < 100; i++) api.checkRateLimit(req.params.wallet);
   const res = response();
   api.rateLimiter(req, res, () => assert.fail('exhausted quota next'));
