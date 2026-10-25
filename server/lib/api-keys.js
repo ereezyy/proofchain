@@ -299,16 +299,71 @@ export function optionalApiKey(req, _res, next) {
   next();
 }
 
+// Per-IP buckets for requests that are not keyed by a wallet.
+// Express req.ip is the client only after trust proxy is applied; this map
+// does not read X-Forwarded-For or X-Real-IP itself.
+const issueHits = new Map(); // ip -> { count, windowStart }
+const ISSUE_HITS_DEFAULT = 4096;
+const ISSUE_HITS_CEILING = 1_000_000;
+
+function boundedPositive(raw, fallback, ceiling) {
+  if (raw == null || raw === '') return fallback;
+  const n = Number(raw);
+  if (!Number.isSafeInteger(n) || n < 1 || n > ceiling) return fallback;
+  return n;
+}
+
+/** Current cap for the IP hit map. Invalid ISSUE_HITS_MAX values use the default. */
+export function issueHitsLimit() {
+  return boundedPositive(process.env.ISSUE_HITS_MAX, ISSUE_HITS_DEFAULT, ISSUE_HITS_CEILING);
+}
+
+function pruneIssueHits(now) {
+  for (const [ip, entry] of issueHits) {
+    if (!entry || now - entry.windowStart > RATE_WINDOW_MS) issueHits.delete(ip);
+  }
+}
+
 /**
- * Apply rate limiting per wallet (IP for unauthenticated, wallet for auth'd).
+ * Client address for rate limiting.
+ * Prefer Express `req.ip` (socket address, or the forwarded client when
+ * `trust proxy` is enabled). Otherwise use the socket. Never the raw headers.
  */
-export function rateLimiter(req, res, next) {
-  const wallet = req.params.wallet || req.ip || 'anonymous';
-  const tier = req.apiKey?.tier || 'free';
+export function clientAddress(req) {
+  if (req && typeof req.ip === 'string' && req.ip.length > 0) return req.ip;
+  const remote = req && req.socket && req.socket.remoteAddress;
+  if (typeof remote === 'string' && remote.length > 0) return remote;
+  return 'anonymous';
+}
 
-  const limit = checkRateLimit(wallet, tier);
+function checkIssueLimit(ip, tier) {
+  const now = Date.now();
+  pruneIssueHits(now);
+  if (tier === 'pro') return { allowed: true, remaining: Infinity };
 
-  // Set rate limit headers
+  const entry = issueHits.get(ip);
+  if (!entry) {
+    if (issueHits.size >= issueHitsLimit()) {
+      return { allowed: false, remaining: 0, resetIn: RATE_WINDOW_MS, capacity: true };
+    }
+    issueHits.set(ip, { count: 1, windowStart: now });
+    return { allowed: true, remaining: FREE_LIMIT - 1 };
+  }
+
+  entry.count += 1;
+  const remaining = Math.max(0, FREE_LIMIT - entry.count);
+  if (entry.count > FREE_LIMIT) {
+    return { allowed: false, remaining: 0, resetIn: RATE_WINDOW_MS - (now - entry.windowStart) };
+  }
+  return { allowed: true, remaining };
+}
+
+/** Test hook. Not an HTTP endpoint. */
+export function clearIssueHitsForTests() {
+  issueHits.clear();
+}
+
+function applyLimit(res, tier, limit, next) {
   res.set('X-RateLimit-Limit', tier === 'pro' ? 'unlimited' : String(FREE_LIMIT));
   res.set('X-RateLimit-Remaining', String(limit.remaining));
 
@@ -316,10 +371,25 @@ export function rateLimiter(req, res, next) {
     res.set('Retry-After', String(Math.ceil((limit.resetIn || 0) / 1000)));
     return res.status(429).json({
       error: 'Rate limit exceeded',
-      message: `Free tier allows ${FREE_LIMIT} requests per day. Upgrade to Pro for unlimited access.`,
+      message: limit.capacity
+        ? 'Rate limit tracking is full. Try again later.'
+        : `Free tier allows ${FREE_LIMIT} requests per day. Upgrade to Pro for unlimited access.`,
       upgrade: 'https://proofchain.us/pricing.html'
     });
   }
 
   next();
+}
+
+/**
+ * Wallet route params keep the free-tier wallet quota.
+ * Requests without a wallet param use a bounded per-IP quota.
+ */
+export function rateLimiter(req, res, next) {
+  const wallet = req.params.wallet;
+  const tier = req.apiKey?.tier || 'free';
+  if (typeof wallet === 'string' && wallet.length > 0) {
+    return applyLimit(res, tier, checkRateLimit(wallet, tier), next);
+  }
+  return applyLimit(res, tier, checkIssueLimit(clientAddress(req), tier), next);
 }
