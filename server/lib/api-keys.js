@@ -201,32 +201,68 @@ export function validateApiKey(key) {
 
 const RATE_WINDOW_MS = 24 * 60 * 60 * 1000; // 24 hours
 const FREE_LIMIT = 100;
+const RATE_STORE_DEFAULT = 10000;
+const RATE_STORE_CEILING = 1_000_000;
+
+// Same shape the registry documents for a Solana address: base58, 32–44 chars.
+const WALLET_ADDRESS = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 
 const rateStore = new Map(); // wallet -> { count, windowStart }
 
-/**
- * Check rate limit for a wallet (free tier only).
- * Pro tier keys bypass this check.
- */
-export function checkRateLimit(wallet, tier = 'free') {
+export function isWalletAddress(value) {
+  return typeof value === 'string' && WALLET_ADDRESS.test(value);
+}
+
+/** Current cap. Invalid RATE_STORE_MAX values keep the default. */
+export function rateStoreLimit() {
+  const raw = process.env.RATE_STORE_MAX;
+  if (raw == null || raw === '') return RATE_STORE_DEFAULT;
+  const n = Number(raw);
+  if (!Number.isSafeInteger(n) || n < 1 || n > RATE_STORE_CEILING) return RATE_STORE_DEFAULT;
+  return n;
+}
+
+function pruneRateStore(now) {
+  for (const [key, entry] of rateStore) {
+    if (!entry || now - entry.windowStart > RATE_WINDOW_MS) rateStore.delete(key);
+  }
+}
+
+function consumeRate(key, tier) {
+  const now = Date.now();
+  pruneRateStore(now);
   if (tier === 'pro') return { allowed: true, remaining: Infinity };
 
-  const now = Date.now();
-  const entry = rateStore.get(wallet);
-
-  if (!entry || now - entry.windowStart > RATE_WINDOW_MS) {
-    rateStore.set(wallet, { count: 1, windowStart: now });
+  const entry = rateStore.get(key);
+  if (!entry) {
+    if (rateStore.size >= rateStoreLimit()) {
+      return { allowed: false, remaining: 0, resetIn: RATE_WINDOW_MS, capacity: true };
+    }
+    rateStore.set(key, { count: 1, windowStart: now });
     return { allowed: true, remaining: FREE_LIMIT - 1 };
   }
 
-  entry.count++;
+  entry.count += 1;
   const remaining = Math.max(0, FREE_LIMIT - entry.count);
-
   if (entry.count > FREE_LIMIT) {
     return { allowed: false, remaining: 0, resetIn: RATE_WINDOW_MS - (now - entry.windowStart) };
   }
-
   return { allowed: true, remaining };
+}
+
+/**
+ * Check rate limit for a wallet (free tier only).
+ * Pro tier keys bypass the quota but still require a wallet address.
+ * Anything else is rejected before it touches the store.
+ */
+export function checkRateLimit(wallet, tier = 'free') {
+  if (!isWalletAddress(wallet)) return { allowed: false, invalid: true };
+  return consumeRate(wallet, tier);
+}
+
+/** Test hook. Not an HTTP endpoint. */
+export function clearRateStoreForTests() {
+  rateStore.clear();
 }
 
 // ── Express Middleware ─────────────────────────────────
@@ -382,14 +418,18 @@ function applyLimit(res, tier, limit, next) {
 }
 
 /**
- * Wallet route params keep the free-tier wallet quota.
- * Requests without a wallet param use a bounded per-IP quota.
+ * A wallet route param must be a base58 address before it touches the wallet
+ * store. Requests without one use the bounded per-IP map and clientAddress.
  */
 export function rateLimiter(req, res, next) {
   const wallet = req.params.wallet;
   const tier = req.apiKey?.tier || 'free';
   if (typeof wallet === 'string' && wallet.length > 0) {
-    return applyLimit(res, tier, checkRateLimit(wallet, tier), next);
+    const limit = checkRateLimit(wallet, tier);
+    if (limit.invalid) {
+      return res.status(400).json({ error: 'Invalid wallet address.' });
+    }
+    return applyLimit(res, tier, limit, next);
   }
   return applyLimit(res, tier, checkIssueLimit(clientAddress(req), tier), next);
 }
